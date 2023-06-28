@@ -17,7 +17,9 @@ export class UsersService {
 
   async findByEmail(email: string, withPassword?: boolean) {
     return await this.repo.findOne({
-      where: { email },
+      where: {
+        email,
+      },
       select: withPassword ? this._getCols() : null,
     });
   }
@@ -33,9 +35,11 @@ export class UsersService {
     if (userByPhone) {
       throw new BadRequestException('Phone is already exists.');
     }
-    const userByEmail = await this.findByEmail(body.email);
-    if (userByEmail) {
-      throw new BadRequestException('Email is already exists.');
+    if (body.email) {
+      const userByEmail = await this.findByEmail(body.email);
+      if (userByEmail) {
+        throw new BadRequestException('Email is already exists.');
+      }
     }
     return this.repo.save(await this.repo.create(body));
   }

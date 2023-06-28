@@ -11,21 +11,21 @@ export class ReasonsService {
     @InjectRepository(Reason) private readonly repo: Repository<Reason>,
   ) {}
 
-  async create(body: CreateReasonDto) {
-    const reason = await this.repo.create(body);
+  async create(createReasonDto: CreateReasonDto) {
+    const reason = await this.repo.create(createReasonDto);
     return this.repo.save(reason);
   }
 
-  async update(id: number, body: UpdateReasonDto) {
-    const reason = await this.findById(id);
+  async update(id: number, updateReasonDto: UpdateReasonDto) {
+    const reason = await this.findOneById(id);
     if (!reason) {
       throw new NotFoundException('Reason not found');
     }
-    Object.assign(reason, body);
+    Object.assign(reason, updateReasonDto);
     return this.repo.save(reason);
   }
 
-  async findById(id: number) {
+  async findOneById(id: number) {
     return this.repo.findOne({
       where: { id },
     });
@@ -36,7 +36,7 @@ export class ReasonsService {
   }
 
   async delete(id: number) {
-    const reason = await this.findById(id);
+    const reason = await this.findOneById(id);
     if (!reason) {
       throw new NotFoundException('Reason not found.');
     }

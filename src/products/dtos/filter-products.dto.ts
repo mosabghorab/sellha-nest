@@ -1,5 +1,6 @@
 import { ProductType } from '../../config/enums/product-type.enum';
 import {
+  IsBoolean,
   IsEnum,
   IsLatitude,
   IsLongitude,
@@ -63,12 +64,8 @@ export class FilterProductsDto {
   @Transform(({ value }) => parseInt(value))
   limit = 10;
 
-  // @IsOptional()
-  // @Transform(({ value }) => {
-  //   console.log('fgfdgfdf');
-  //   console.log(value);
-  //   return true;
-  // })
-  // @IsBoolean()
-  // isBestOffers: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  @IsBoolean()
+  isBestOffers: boolean;
 }

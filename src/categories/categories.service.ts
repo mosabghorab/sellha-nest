@@ -11,24 +11,24 @@ export class CategoriesService {
     @InjectRepository(Category) private readonly repo: Repository<Category>,
   ) {}
 
-  async create(body: CreateCategoryDto) {
-    const category = await this.repo.create(body);
+  async create(createCategoryDto: CreateCategoryDto) {
+    const category = await this.repo.create(createCategoryDto);
     return this.repo.save(category);
   }
 
-  async update(id: number, body: UpdateCategoryDto) {
-    const category = await this.findById(id);
+  async update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    const category = await this.findOneById(id);
     if (!category) {
       throw new NotFoundException('Category not found');
     }
-    Object.assign(category, body);
+    Object.assign(category, updateCategoryDto);
     return this.repo.save(category);
   }
 
-  async findById(id: number) {
+  async findOneById(id: number) {
     return this.repo.findOne({
       where: { id },
-      relations: { subCategories: true },
+      relations: { subCategories: true, parent: true },
     });
   }
 
@@ -40,7 +40,7 @@ export class CategoriesService {
   }
 
   async delete(id: number) {
-    const category = await this.findById(id);
+    const category = await this.findOneById(id);
     if (!category) {
       throw new NotFoundException('Category not found.');
     }

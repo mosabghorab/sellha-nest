@@ -2,16 +2,24 @@ import { ProductType } from '../../config/enums/product-type.enum';
 import {
   IsBoolean,
   IsEnum,
+  IsJSON,
   IsLatitude,
   IsLongitude,
   IsNumber,
   IsString,
-  IsUrl,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateProductDto {
-  @IsString()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
+  categoryId: number;
+
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
+  subCategoryId: number;
+
+  @IsJSON()
   name: string;
 
   @IsString()
@@ -20,9 +28,6 @@ export class CreateProductDto {
   @IsNumber()
   @Transform(({ value }) => parseFloat(value))
   price: number;
-
-  @IsUrl()
-  mainImage: string;
 
   @IsEnum(ProductType)
   type: string;
@@ -39,6 +44,7 @@ export class CreateProductDto {
   @Transform(({ value }) => parseFloat(value))
   discount: number;
 
+  @Transform(({ value }) => value === 'true')
   @IsBoolean()
   isBestOffers: boolean;
 }

@@ -1,16 +1,16 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class CreateCategoryDto {
+export class CreateReportDto {
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
+  productId: number;
+
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => parseInt(value))
-  parentId: number;
-
-  @IsNumber()
-  @Transform(({ value }) => parseInt(value))
-  imageId: number;
+  reasonId: number;
 
   @IsString()
-  name: string;
+  text: string;
 }

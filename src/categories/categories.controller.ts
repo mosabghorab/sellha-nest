@@ -20,23 +20,26 @@ export class CategoriesController {
 
   @UseGuards(AdminGuard)
   @Post()
-  async create(@Body() body: CreateCategoryDto) {
+  async create(@Body() createCategoryDto: CreateCategoryDto) {
     return new ApiResponse(
       true,
       'Category created successfully',
       200,
-      await this.categoriesService.create(body),
+      await this.categoriesService.create(createCategoryDto),
     );
   }
 
   @UseGuards(AdminGuard)
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() body: UpdateCategoryDto) {
+  async update(
+    @Param('id') id: number,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
     return new ApiResponse(
       true,
       'Category updated successfully',
       200,
-      await this.categoriesService.update(id, body),
+      await this.categoriesService.update(id, updateCategoryDto),
     );
   }
 

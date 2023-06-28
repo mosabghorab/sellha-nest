@@ -8,5 +8,6 @@ import { Reason } from './entities/reason.entity';
   imports: [TypeOrmModule.forFeature([Reason])],
   providers: [ReasonsService],
   controllers: [ReasonsController],
+  exports: [ReasonsService],
 })
 export class ReasonsModule {}

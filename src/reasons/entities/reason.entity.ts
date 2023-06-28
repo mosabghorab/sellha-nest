@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Report } from '../../reports/entities/report.entity';
 
 @Entity()
 export class Reason {
@@ -7,4 +8,8 @@ export class Reason {
 
   @Column()
   name: string;
+
+  // relations.
+  @OneToMany(() => Report, (report) => report.reason, { cascade: true })
+  reports: Report[];
 }

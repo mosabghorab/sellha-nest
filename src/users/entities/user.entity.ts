@@ -12,6 +12,7 @@ import { compare, genSaltSync, hashSync } from 'bcryptjs';
 import { UserRole } from 'src/config/enums/user-role.enum';
 import { Product } from '../../products/entities/product.entity';
 import { Favorite } from '../../favorite/entities/favorite.entity';
+import { Order } from '../../orders/entities/order.entity';
 
 @Entity({ orderBy: { createdAt: 'DESC' } })
 export class User {
@@ -52,11 +53,18 @@ export class User {
   updatedAt: Date;
 
   // relations.
+  // one to many.
   @OneToMany(() => Product, (product) => product.user, { cascade: true })
   products: Product[];
 
   @OneToMany(() => Favorite, (favorite) => favorite.user, { cascade: true })
   favorites: Favorite[];
+
+  @OneToMany(() => Order, (order) => order.buyer, { cascade: true })
+  ordersFromBuyers: Order[];
+
+  @OneToMany(() => Order, (order) => order.seller, { cascade: true })
+  ordersFromSellers: Order[];
 
   // hooks.
   @BeforeInsert()

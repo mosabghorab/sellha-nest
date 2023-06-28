@@ -32,8 +32,8 @@ export class AuthService {
   // }
 
   // check phone.
-  async checkPhone(body: CheckPhoneDto) {
-    const user = await this.usersService.findByPhone(body.phone);
+  async checkPhone(checkPhoneDto: CheckPhoneDto) {
+    const user = await this.usersService.findByPhone(checkPhoneDto.phone);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -41,8 +41,8 @@ export class AuthService {
   }
 
   // submit code.
-  async submitCode(body: SubmitCodeDto) {
-    const user: User = await this.usersService.findByPhone(body.phone);
+  async submitCode(submitCodeDto: SubmitCodeDto) {
+    const user: User = await this.usersService.findByPhone(submitCodeDto.phone);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -54,14 +54,9 @@ export class AuthService {
   }
 
   // sign up.
-  async signUp(body: CreateUserDto) {
-    const user = await this.usersService.create(body);
+  async signUp(createUserDto: CreateUserDto) {
+    const user = await this.usersService.create(createUserDto);
     if (!user) throw new InternalServerErrorException('something went wrong');
     return true;
-    // const accessToken = await this.jwtService.signAsync({
-    //   id: user.id,
-    //   role: user.role,
-    // });
-    // return { ...user, accessToken };
   }
 }
