@@ -5,9 +5,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from '../../config/constants';
 import { UserRole } from 'src/config/enums/user-role.enum';
 import { extractTokenFromHeader } from '../../config/helpers';
+import { Constants } from '../../config/constants';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -21,7 +21,7 @@ export class AdminGuard implements CanActivate {
     }
     try {
       request.user = await this.jwtService.verifyAsync(token, {
-        secret: jwtConstants.secret,
+        secret: Constants.jwt.secret,
       });
     } catch (error) {
       console.log(error);

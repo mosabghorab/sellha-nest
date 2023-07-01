@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFiles,
   UseGuards,
 } from '@nestjs/common';
 import { CreateCategoryDto } from './dtos/create-category.dto';
@@ -13,6 +14,7 @@ import { CategoriesService } from './categories.service';
 import { ApiResponse } from '../config/classes/api-response';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { UpdateCategoryDto } from './dtos/update-category.dto';
+import { CurrentUser } from '../users/custom-decorators/current-user-decorator';
 
 @Controller('categories')
 export class CategoriesController {
@@ -20,12 +22,16 @@ export class CategoriesController {
 
   @UseGuards(AdminGuard)
   @Post()
-  async create(@Body() createCategoryDto: CreateCategoryDto) {
+  async create(
+    @CurrentUser() user: any,
+    @Body() createCategoryDto: CreateCategoryDto,
+    @UploadedFiles() files: any,
+  ) {
     return new ApiResponse(
       true,
       'Category created successfully',
       200,
-      await this.categoriesService.create(createCategoryDto),
+      await this.categoriesService.create(user.id, createCategoryDto, files),
     );
   }
 
@@ -34,17 +40,18 @@ export class CategoriesController {
   async update(
     @Param('id') id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
+    @UploadedFiles() files: any,
   ) {
     return new ApiResponse(
       true,
       'Category updated successfully',
       200,
-      await this.categoriesService.update(id, updateCategoryDto),
+      await this.categoriesService.update(id, updateCategoryDto, files),
     );
   }
 
   @Get()
-  async getAll() {
+  async findAll() {
     return new ApiResponse(
       true,
       'All categories',

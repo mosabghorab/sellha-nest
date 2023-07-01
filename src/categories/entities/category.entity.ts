@@ -9,11 +9,15 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({ orderBy: { createdAt: 'DESC' } })
 export class Category {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  userId: number;
 
   @Column({ nullable: true })
   parentId: number;
@@ -22,7 +26,7 @@ export class Category {
   name: string;
 
   @Column()
-  imageId: number;
+  image: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -32,6 +36,12 @@ export class Category {
 
   // relations.
   // many to one.
+  @ManyToOne(() => User, (user) => user.categories, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
   @ManyToOne(() => Category, (category) => category.subCategories, {
     onDelete: 'CASCADE',
   })

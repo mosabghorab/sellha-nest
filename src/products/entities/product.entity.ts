@@ -15,6 +15,7 @@ import { Category } from '../../categories/entities/category.entity';
 import { Report } from '../../reports/entities/report.entity';
 import { Order } from '../../orders/entities/order.entity';
 import { ProductImage } from '../../product-images/entities/product-image.entity';
+import { Chat } from '../../chats/entities/chat.entity';
 
 @Entity({ orderBy: { createdAt: 'DESC' } })
 export class Product {
@@ -74,9 +75,6 @@ export class Product {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @OneToMany(() => Favorite, (favorite) => favorite.product, { cascade: true })
-  favorites: Favorite[];
-
   @ManyToOne(
     () => Category,
     (subCategory) => subCategory.productsFromSubCategory,
@@ -92,6 +90,9 @@ export class Product {
   category: Category;
 
   // on to many.
+  @OneToMany(() => Favorite, (favorite) => favorite.product, { cascade: true })
+  favorites: Favorite[];
+
   @OneToMany(() => Report, (report) => report.product, { cascade: true })
   reports: Report[];
 
@@ -100,4 +101,7 @@ export class Product {
 
   @OneToMany(() => ProductImage, (image) => image.product, { cascade: true })
   images: ProductImage[];
+
+  @OneToMany(() => Chat, (chat) => chat.product, { cascade: true })
+  chats: Chat[];
 }

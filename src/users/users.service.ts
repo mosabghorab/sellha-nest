@@ -48,12 +48,12 @@ export class UsersService {
     return await this.repo.find();
   }
 
-  async findOne(id: number) {
+  async findOneById(id: number) {
     return await this.repo.findOne({ where: { id } });
   }
 
   async update(id: number, body: UpdateUserDto) {
-    const user = await this.findOne(id);
+    const user = await this.findOneById(id);
     if (!user) {
       throw new NotFoundException('User not found.');
     }
@@ -62,7 +62,7 @@ export class UsersService {
   }
 
   async delete(id: number) {
-    const user = await this.findOne(id);
+    const user = await this.findOneById(id);
     if (!user) {
       throw new NotFoundException('User not found.');
     }

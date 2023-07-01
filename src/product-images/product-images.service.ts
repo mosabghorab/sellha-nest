@@ -1,48 +1,61 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateProductImageDto } from './dtos/create-product-image.dto';
 import { ProductImage } from './entities/product-image.entity';
-import { CategoriesService } from '../categories/categories.service';
 import { ProductsService } from '../products/products.service';
+import { unlinkSync } from 'fs';
+import { Constants } from '../config/constants';
 
 @Injectable()
 export class ProductImagesService {
   constructor(
     @InjectRepository(ProductImage)
     private readonly repo: Repository<ProductImage>,
+    @Inject(forwardRef(() => ProductsService))
     private readonly productsService: ProductsService,
-    private readonly categoriesService: CategoriesService,
   ) {}
 
-  async create(createImageDto: CreateProductImageDto) {
-    const productImage = await this.repo.create(createImageDto);
-    const product = await this.productsService.findOneById(
-      createImageDto.productId,
-    );
-    if (!product) {
-      throw new NotFoundException('Product not found.');
-    }
-    productImage.product = product;
+  // create.
+  async create(productId: number, name: string) {
+    const productImage = await this.repo.create({ productId, name });
     return this.repo.save(productImage);
   }
 
-  async findOneById(id: number) {
-    return this.repo.findOne({
-      where: { id },
-      relations: { product: true },
-    });
-  }
-
-  async findAll() {
-    return this.repo.find({ relations: { product: true } });
-  }
-
-  async delete(id: number) {
-    const productImage = await this.findOneById(id);
+  // update.
+  async update(id: number, name: string) {
+    const productImage = await this.repo.findOne({ where: { id } });
     if (!productImage) {
-      throw new NotFoundException('Product image not found.');
+      throw new NotFoundException('Product image not found');
     }
-    return this.repo.remove(productImage);
+    productImage.name = name;
+    return this.repo.save(productImage);
+  }
+
+  // delete.
+  async delete(...ids) {
+    const productImages = await this.repo
+      .createQueryBuilder('product-image')
+      .where('product-image.id IN (:...ids)', { ids })
+      .getMany();
+    for (const value of productImages) {
+      await this.repo.remove(value);
+      await unlinkSync(Constants.productsImagesPath + value.name);
+    }
+    return true;
+  }
+
+  // delete by product id.
+  async deleteByProductId(productId: number) {
+    const productImages = await this.repo.find({ where: { productId } });
+    for (const value of productImages) {
+      unlinkSync(Constants.productsImagesPath + value.name);
+      await this.repo.remove(value);
+    }
+    return true;
   }
 }

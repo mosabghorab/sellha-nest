@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
@@ -8,6 +14,14 @@ import { UpdateProductDto } from './dtos/update-product.dto';
 import { FilterProductsDto } from './dtos/filter-products.dto';
 import { CategoriesService } from '../categories/categories.service';
 import { CreateProductUploadFilesDto } from './dtos/create-product-upload-files.dto';
+import { ProductImagesService } from '../product-images/product-images.service';
+import { unlinkSync } from 'fs';
+import { FindOptionsRelations } from 'typeorm/find-options/FindOptionsRelations';
+import { UpdateProductUploadFilesDto } from './dtos/update-product-upload-files.dto';
+import { UploadImageDto } from '../config/dtos/upload-image-dto';
+import { validateDto } from '../config/helpers';
+import { Constants } from '../config/constants';
+import * as fs from 'fs-extra';
 
 @Injectable()
 export class ProductsService {
@@ -16,21 +30,27 @@ export class ProductsService {
     private readonly repo: Repository<Product>,
     private readonly usersService: UsersService,
     private readonly categoriesService: CategoriesService,
+    @Inject(forwardRef(() => ProductImagesService))
+    private readonly productImagesService: ProductImagesService,
   ) {}
 
   // create new product.
-  async create(
-    userId: number,
-    createProductDto: CreateProductDto,
-    createProductUploadFilesDto: CreateProductUploadFilesDto,
-  ) {
-    const user = await this.usersService.findOne(userId);
+  async create(userId: number, createProductDto: CreateProductDto, files: any) {
+    const createProductUploadFilesDto =
+      await this.prepareCreateProductUploadFilesDtoFromFiles(files);
+    const user = await this.usersService.findOneById(userId);
     const category = await this.categoriesService.findOneById(
       createProductDto.categoryId,
     );
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
     const subCategory = await this.categoriesService.findOneById(
       createProductDto.subCategoryId,
     );
+    if (!subCategory) {
+      throw new NotFoundException('Sub category not found');
+    }
     const product = await this.repo.create({
       mainImage: createProductUploadFilesDto.mainImage.name,
       ...createProductDto,
@@ -38,18 +58,27 @@ export class ProductsService {
     product.user = user;
     product.category = category;
     product.subCategory = subCategory;
-    return this.repo.save(product);
+    const newProduct = await this.repo.save(product);
+    // save product images.
+    const images = [];
+    for (const value of createProductUploadFilesDto.images) {
+      images.push(
+        await this.productImagesService.create(newProduct.id, value.name),
+      );
+    }
+    newProduct.images = images;
+    return newProduct;
   }
 
   // find products with filter.
   async findAll(filterProductsDto: FilterProductsDto) {
     const query = this.repo.createQueryBuilder('product');
     query.leftJoinAndSelect('product.user', 'user');
+    query.leftJoinAndSelect('product.category', 'category');
     query.leftJoinAndSelect('product.subCategory', 'subCategory');
-    query.leftJoinAndSelect('subCategory.parent', 'parent');
+    query.leftJoinAndSelect('product.images', 'images');
     const offset = (filterProductsDto.page - 1) * filterProductsDto.limit;
     query.skip(offset).take(filterProductsDto.limit);
-
     if (filterProductsDto.userId) {
       query.andWhere('product.userId = :userId', {
         userId: filterProductsDto.userId,
@@ -100,27 +129,56 @@ export class ProductsService {
   }
 
   // find one by id.
-  async findOneById(id: number) {
+  async findOneById(id: number, relations?: FindOptionsRelations<Product>) {
     return await this.repo.findOne({
       where: { id },
-      relations: { user: true },
+      relations: relations,
     });
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto) {
-    const product = await this.findOneById(id);
+  // update.
+  async update(id: number, updateProductDto: UpdateProductDto, files: any) {
+    const updateProductUploadFilesDto =
+      await this.prepareUpdateProductUploadFilesDtoFromFiles(files);
+    const product = await this.findOneById(id, { images: true });
     if (!product) {
       throw new NotFoundException('Product not found.');
     }
+    if (updateProductUploadFilesDto.mainImage) {
+      unlinkSync(Constants.productsImagesPath + product.mainImage);
+      product.mainImage = updateProductUploadFilesDto.mainImage.name;
+    }
+    if (updateProductUploadFilesDto.images?.length > 0) {
+      const images = [];
+      for (const value of updateProductUploadFilesDto.images) {
+        images.push(
+          await this.productImagesService.create(product.id, value.name),
+        );
+      }
+      product.images.push(...images);
+    }
+    if (updateProductDto.deleteImages?.length > 0) {
+      await this.productImagesService.delete(updateProductDto.deleteImages);
+      product.images = product.images.filter(
+        (e) => !updateProductDto.deleteImages.includes(e.id),
+      );
+    }
+    delete updateProductDto.deleteImages;
     Object.assign(product, updateProductDto);
-    return this.repo.save(product);
+    return await this.repo.save(product);
   }
 
+  // delete.
   async delete(id: number) {
     const product = await this.findOneById(id);
     if (!product) {
       throw new NotFoundException('Product not found.');
     }
+    const result = await this.productImagesService.deleteByProductId(id);
+    if (!result) {
+      throw new InternalServerErrorException();
+    }
+    unlinkSync(Constants.productsImagesPath + product.mainImage);
     return this.repo.remove(product);
   }
 
@@ -140,5 +198,53 @@ export class ProductsService {
     //   isBestOffers: faker.datatype.boolean(),
     // }));
     // await this.repo.save(fakeData);
+  }
+
+  // prepare create product upload files dtos from files.
+  private async prepareCreateProductUploadFilesDtoFromFiles(
+    files: any,
+  ): Promise<CreateProductUploadFilesDto> {
+    const imagesUploadImageDto = [];
+    for (const image of files?.images) {
+      imagesUploadImageDto.push(UploadImageDto.fromFile(image));
+    }
+    const createProductUploadFilesDto = new CreateProductUploadFilesDto();
+    createProductUploadFilesDto.mainImage = UploadImageDto.fromFile(
+      files?.mainImage,
+    );
+    createProductUploadFilesDto.images = imagesUploadImageDto;
+    await validateDto(createProductUploadFilesDto);
+    await fs.ensureDir(Constants.productsImagesPath);
+    await createProductUploadFilesDto.mainImage.mv(
+      Constants.productsImagesPath + createProductUploadFilesDto.mainImage.name,
+    );
+    for (const image of createProductUploadFilesDto.images) {
+      await image.mv(Constants.productsImagesPath + image.name);
+    }
+    return createProductUploadFilesDto;
+  }
+
+  // prepare update product upload files dtos from files.
+  private async prepareUpdateProductUploadFilesDtoFromFiles(
+    files: any,
+  ): Promise<UpdateProductUploadFilesDto> {
+    const imagesUploadImageDto = [];
+    for (const image of files?.images) {
+      imagesUploadImageDto.push(UploadImageDto.fromFile(image));
+    }
+    const updateProductUploadFilesDto = new UpdateProductUploadFilesDto();
+    updateProductUploadFilesDto.mainImage = UploadImageDto.fromFile(
+      files?.mainImage,
+    );
+    updateProductUploadFilesDto.images = imagesUploadImageDto;
+    await validateDto(updateProductUploadFilesDto);
+    await fs.ensureDir(Constants.productsImagesPath);
+    await updateProductUploadFilesDto.mainImage?.mv(
+      Constants.productsImagesPath + updateProductUploadFilesDto.mainImage.name,
+    );
+    for (const image of updateProductUploadFilesDto.images) {
+      await image.mv(Constants.productsImagesPath + image.name);
+    }
+    return updateProductUploadFilesDto;
   }
 }

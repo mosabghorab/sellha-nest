@@ -17,6 +17,12 @@ import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { ProductImagesModule } from './product-images/product-images.module';
 import { ProductImage } from './product-images/entities/product-image.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { ChatsModule } from './chats/chats.module';
+import { Chat } from './chats/entities/chat.entity';
+import { MessagesModule } from './messages/messages.module';
+import { Message } from './messages/entities/message.entity';
 
 @Module({
   imports: [
@@ -34,8 +40,13 @@ import { ProductImage } from './product-images/entities/product-image.entity';
         Report,
         Order,
         ProductImage,
+        Chat,
+        Message,
       ],
       synchronize: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
     }),
     AuthModule,
     UsersModule,
@@ -46,6 +57,8 @@ import { ProductImage } from './product-images/entities/product-image.entity';
     ReportsModule,
     OrdersModule,
     ProductImagesModule,
+    ChatsModule,
+    MessagesModule,
   ],
 })
 export class AppModule {}
