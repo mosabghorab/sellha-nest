@@ -16,6 +16,7 @@ import { Order } from '../../orders/entities/order.entity';
 import { Category } from '../../categories/entities/category.entity';
 import { Chat } from '../../chats/entities/chat.entity';
 import { Message } from '../../messages/entities/message.entity';
+import { Comment } from 'src/comments/entities/comment.entity';
 
 @Entity({ orderBy: { createdAt: 'DESC' } })
 export class User {
@@ -83,6 +84,12 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.receiver, { cascade: true })
   messagesAsReceiver: Message[];
+
+  @OneToMany(() => Comment, (comment) => comment.seller, { cascade: true })
+  commentsAsSeller: Comment[];
+
+  @OneToMany(() => Comment, (comment) => comment.buyer, { cascade: true })
+  commentsAsBuyer: Comment[];
 
   // hooks.
   @BeforeInsert()

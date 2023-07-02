@@ -24,12 +24,12 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto, @UploadedFiles() files?:any) {
+  async create(@Body() createUserDto: CreateUserDto, @UploadedFiles() files?: any) {
     return new ApiResponse(
       true,
       'User created successfully',
       200,
-      await this.usersService.create(createUserDto,files),
+      await this.usersService.create(createUserDto, files),
     );
   }
 
@@ -44,22 +44,22 @@ export class UsersController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() body: UpdateUserDto , @UploadedFiles() files?:any) {
+  async update(@Param('id') id: number, @Body() body: UpdateUserDto, @UploadedFiles() files?: any) {
     return new ApiResponse(
       true,
       'User updated successfully',
       200,
-      await this.usersService.update(id, body,files),
+      await this.usersService.update(id, body, files),
     );
   }
-  //
-  // @Delete(':id')
-  // async delete(@Param('id') id: number) {
-  //   return new ApiResponse(
-  //     true,
-  //     'User deleted successfully',
-  //     200,
-  //     await this.usersService.delete(id),
-  //   );
-  // }
+
+  @Delete(':id')
+  async delete(@Param('id') id: number) {
+    return new ApiResponse(
+      true,
+      'User deleted successfully',
+      200,
+      await this.usersService.delete(id),
+    );
+  }
 }

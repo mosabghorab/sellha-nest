@@ -205,7 +205,7 @@ export class ProductsService {
     files: any,
   ): Promise<CreateProductUploadFilesDto> {
     const imagesUploadImageDto = [];
-    for (const image of files?.images) {
+    for (const image of files?.images || []) {
       imagesUploadImageDto.push(UploadImageDto.fromFile(image));
     }
     const createProductUploadFilesDto = new CreateProductUploadFilesDto();

@@ -16,6 +16,7 @@ import { Report } from '../../reports/entities/report.entity';
 import { Order } from '../../orders/entities/order.entity';
 import { ProductImage } from '../../product-images/entities/product-image.entity';
 import { Chat } from '../../chats/entities/chat.entity';
+import { Comment } from 'src/comments/entities/comment.entity';
 
 @Entity({ orderBy: { createdAt: 'DESC' } })
 export class Product {
@@ -104,4 +105,7 @@ export class Product {
 
   @OneToMany(() => Chat, (chat) => chat.product, { cascade: true })
   chats: Chat[];
+
+  @OneToMany(() => Comment, (comment) => comment.product, { cascade: true })
+  comments: Comment[];
 }

@@ -23,6 +23,8 @@ import { ChatsModule } from './chats/chats.module';
 import { Chat } from './chats/entities/chat.entity';
 import { MessagesModule } from './messages/messages.module';
 import { Message } from './messages/entities/message.entity';
+import { CommentsModule } from './comments/comments.module';
+import { Comment } from './comments/entities/comment.entity';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { Message } from './messages/entities/message.entity';
         ProductImage,
         Chat,
         Message,
+        Comment,
       ],
       synchronize: true,
     }),
@@ -59,6 +62,7 @@ import { Message } from './messages/entities/message.entity';
     ProductImagesModule,
     ChatsModule,
     MessagesModule,
+    CommentsModule,
   ],
 })
 export class AppModule {}
