@@ -28,7 +28,7 @@ export class CreateUserDto {
   bio: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   image: string;
 
   @IsOptional()

@@ -40,7 +40,7 @@ export class User {
   @Column({ default: 1 })
   verification: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ nullable: true })
   image: string;
 
   @Column({ type: 'text', nullable: true })
