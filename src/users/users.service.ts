@@ -51,7 +51,7 @@ export class UsersService {
         throw new BadRequestException('Email is already exists.');
       }
     }
-    const createUserUploadFilesDto = await this.prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
+    const createUserUploadFilesDto = await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
     if (createUserUploadFilesDto.image) {
       createUserDto.image = createUserUploadFilesDto.image.name;
     }
@@ -86,7 +86,7 @@ export class UsersService {
       }
     }
     if (files) {
-      const createOrUpdateUserUploadFilesDto = await this.prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
+      const createOrUpdateUserUploadFilesDto = await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
       if (createOrUpdateUserUploadFilesDto.image) {
         unlinkSync(Constants.usersImagesPath + user.image);
         updateUserDto.image = createOrUpdateUserUploadFilesDto.image.name;
@@ -113,7 +113,7 @@ export class UsersService {
   }
 
   // prepare create or update user upload files dtos from files.
-  private async prepareCreateOrUpdateUserUploadFilesDtoFromFiles(
+  private async _prepareCreateOrUpdateUserUploadFilesDtoFromFiles(
     files: any,
   ): Promise<CreateOrUpdateUserUploadFilesDto> {
     const createOrUpdateUserUploadFilesDto = new CreateOrUpdateUserUploadFilesDto();
