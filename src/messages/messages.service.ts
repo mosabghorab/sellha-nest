@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dtos/create-message.dto';
-import { UpdateMessageDto } from './dtos/update-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
@@ -13,6 +12,9 @@ import { validateDto } from '../config/helpers';
 import { Constants } from '../config/constants';
 import * as fs from 'fs-extra';
 import { MessageType } from './enums/message-type.enum';
+import { FindOptionsRelations } from 'typeorm/find-options/FindOptionsRelations';
+import { FindMessagesDto } from './dtos/find-messages.dto';
+import { Chat } from '../chats/entities/chat.entity';
 
 @Injectable()
 export class MessagesService {
@@ -70,20 +72,35 @@ export class MessagesService {
     return this.repo.save(message);
   }
 
-  findAll() {
-    return `This action returns all messages`;
+  async findAll(
+    userId: number,
+    findMessagesDto: FindMessagesDto,
+    relations?: FindOptionsRelations<Message>,
+  ) {
+    const chat = await this.chatsService.findOneById(findMessagesDto.chatId);
+    if (!chat) {
+      throw new BadRequestException('Please provide a valid chat id');
+    }
+    await this.repo.update(
+      { chatId: findMessagesDto.chatId, receiverId: userId },
+      { isRead: true },
+    );
+    return this.repo.find({
+      where: { chatId: findMessagesDto.chatId },
+      relations: relations,
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} message`;
+  findOneById(id: number, relations?: FindOptionsRelations<Chat>) {
+    return this.repo.findOne({ where: { id }, relations: relations });
   }
 
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} message`;
+  async remove(id: number) {
+    const message = await this.findOneById(id);
+    if (!message) {
+      throw new BadRequestException('Please provide a valid message id');
+    }
+    return this.repo.remove(message);
   }
 
   // prepare create message upload files dtos from files.
