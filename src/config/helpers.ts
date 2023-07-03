@@ -1,6 +1,9 @@
 import { BadRequestException, ValidationError } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { randomBytes } from 'crypto';
+import * as fs from 'fs-extra';
+import { unlinkSync } from 'fs';
+import { Constants } from './constants';
 
 export const extractTokenFromHeader = (
   request: Request,
@@ -38,3 +41,14 @@ export const generateUniqueFileName = (originalName: string): string => {
   const fileExtension = originalName.split('.').pop();
   return `${timestamp}-${randomString}.${fileExtension}`;
 };
+
+
+export const saveFile = async (
+  filepath: string,
+  filename: string,
+  file: any,
+) : Promise<boolean>=> {
+  await fs.ensureDir(filepath);
+  await file.mv(filepath + filename);
+  return true;
+}

@@ -3,6 +3,7 @@ export class Constants {
     secret: '123jwtsecret$$#333@@',
   };
 
+  static adsImagesPath = './public/uploads/ads-images/';
   static productsImagesPath = './public/uploads/products-images/';
   static categoriesImagesPath = './public/uploads/categories-images/';
   static messagesImagesPath = './public/uploads/messages-images/';

@@ -8,7 +8,7 @@ import { Message } from './entities/message.entity';
 import { ChatsService } from '../chats/chats.service';
 import { CreateMessageUploadFilesDto } from './dtos/create-message-upload-files.dto';
 import { UploadImageDto } from '../config/dtos/upload-image-dto';
-import { validateDto } from '../config/helpers';
+import { saveFile, validateDto } from '../config/helpers';
 import { Constants } from '../config/constants';
 import * as fs from 'fs-extra';
 import { MessageType } from './enums/message-type.enum';
@@ -23,7 +23,7 @@ export class MessagesService {
     private readonly usersService: UsersService,
     private readonly productsService: ProductsService,
     private readonly chatsService: ChatsService,
-  ) {}
+  ) { }
 
   async create(createMessageDto: CreateMessageDto, files: any) {
     if (
@@ -33,7 +33,7 @@ export class MessagesService {
       throw new BadRequestException('Please provide an text content');
     }
     const createMessageUploadFilesDto =
-      await this.prepareCreateMessageUploadFilesDtoFromFiles(files);
+      await this._prepareCreateMessageUploadFilesDtoFromFiles(files);
     if (
       createMessageDto.type == MessageType.IMAGE &&
       !createMessageUploadFilesDto.content
@@ -104,7 +104,7 @@ export class MessagesService {
   }
 
   // prepare create message upload files dtos from files.
-  private async prepareCreateMessageUploadFilesDtoFromFiles(
+  private async _prepareCreateMessageUploadFilesDtoFromFiles(
     files: any,
   ): Promise<CreateMessageUploadFilesDto> {
     const createMessageUploadFilesDto = new CreateMessageUploadFilesDto();
@@ -112,10 +112,7 @@ export class MessagesService {
       files?.content,
     );
     await validateDto(createMessageUploadFilesDto);
-    await fs.ensureDir(Constants.messagesImagesPath);
-    await createMessageUploadFilesDto.content?.mv(
-      Constants.messagesImagesPath + createMessageUploadFilesDto.content.name,
-    );
+    await saveFile(Constants.messagesImagesPath, createMessageUploadFilesDto.content.name, createMessageUploadFilesDto.content);
     return createMessageUploadFilesDto;
   }
 }

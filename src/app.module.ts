@@ -25,6 +25,8 @@ import { MessagesModule } from './messages/messages.module';
 import { Message } from './messages/entities/message.entity';
 import { CommentsModule } from './comments/comments.module';
 import { Comment } from './comments/entities/comment.entity';
+import { AdsModule } from './ads/ads.module';
+import { Ad } from './ads/entities/ad.entity';
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { Comment } from './comments/entities/comment.entity';
         Chat,
         Message,
         Comment,
+        Ad,
       ],
       synchronize: true,
     }),
@@ -63,6 +66,7 @@ import { Comment } from './comments/entities/comment.entity';
     ChatsModule,
     MessagesModule,
     CommentsModule,
+    AdsModule,
   ],
 })
 export class AppModule {}
