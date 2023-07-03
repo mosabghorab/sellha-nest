@@ -39,11 +39,11 @@ export class CommentsService {
     return this.repo.save(comment);
   }
 
-  findAll(userId:number) {
+  findAll(userId:number, relations?: FindOptionsRelations<Comment>) {
     return this.repo.find({where:{sellerId:userId}});
   }
 
-  findOneById(id: number, relations?: FindOptionsRelations<Chat>) {
+  findOneById(id: number, relations?: FindOptionsRelations<Comment>) {
     return this.repo.findOne({ where: { id }, relations: relations });
   }
 
