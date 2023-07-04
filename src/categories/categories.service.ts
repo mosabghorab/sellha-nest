@@ -10,17 +10,15 @@ import { UploadImageDto } from '../config/dtos/upload-image-dto';
 import { saveFile, validateDto } from '../config/helpers';
 import { Constants } from '../config/constants';
 import { CreateCategoryUploadedFilesDto } from './dtos/create-category-upload-files.dto';
-import * as fs from 'fs-extra';
 import { unlinkSync } from 'fs';
 import { UpdateCategoryUploadedFilesDto } from './dtos/update-category-upload-files.dto';
-import { CreateAdUploadedFilesDto } from 'src/ads/dto/create-ad-uploaded-files.dto';
 
 @Injectable()
 export class CategoriesService {
   constructor(
     @InjectRepository(Category) private readonly repo: Repository<Category>,
     private readonly usersService: UsersService,
-  ) { }
+  ) {}
 
   // create.
   async create(userId: number, createCategoryDto: CreateCategoryDto, files) {
@@ -84,18 +82,26 @@ export class CategoriesService {
     const createCategoryUploadFilesDto = new CreateCategoryUploadedFilesDto();
     createCategoryUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(createCategoryUploadFilesDto);
-    await saveFile(Constants.categoriesImagesPath, createCategoryUploadFilesDto.image?.name, createCategoryUploadFilesDto.image);
+    await saveFile(
+      Constants.categoriesImagesPath,
+      createCategoryUploadFilesDto.image?.name,
+      createCategoryUploadFilesDto.image,
+    );
     return createCategoryUploadFilesDto;
   }
 
-  // prepare update category upload files dtos from files.
+  // prepare update category upload files dto from files.
   private async _prepareUpdateAdUploadFilesDtoFromFiles(
     files: any,
   ): Promise<UpdateCategoryUploadedFilesDto> {
     const updateCategoryUploadFilesDto = new UpdateCategoryUploadedFilesDto();
     updateCategoryUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(updateCategoryUploadFilesDto);
-    await saveFile(Constants.categoriesImagesPath, updateCategoryUploadFilesDto.image?.name, updateCategoryUploadFilesDto.image);
+    await saveFile(
+      Constants.categoriesImagesPath,
+      updateCategoryUploadFilesDto.image?.name,
+      updateCategoryUploadFilesDto.image,
+    );
     return updateCategoryUploadFilesDto;
   }
 }

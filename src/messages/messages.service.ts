@@ -10,11 +10,12 @@ import { CreateMessageUploadFilesDto } from './dtos/create-message-upload-files.
 import { UploadImageDto } from '../config/dtos/upload-image-dto';
 import { saveFile, validateDto } from '../config/helpers';
 import { Constants } from '../config/constants';
-import * as fs from 'fs-extra';
 import { MessageType } from './enums/message-type.enum';
 import { FindOptionsRelations } from 'typeorm/find-options/FindOptionsRelations';
 import { FindMessagesDto } from './dtos/find-messages.dto';
 import { Chat } from '../chats/entities/chat.entity';
+import { User } from '../users/entities/user.entity';
+import { Product } from '../products/entities/product.entity';
 
 @Injectable()
 export class MessagesService {
@@ -23,7 +24,7 @@ export class MessagesService {
     private readonly usersService: UsersService,
     private readonly productsService: ProductsService,
     private readonly chatsService: ChatsService,
-  ) { }
+  ) {}
 
   async create(createMessageDto: CreateMessageDto, files: any) {
     if (
@@ -40,28 +41,9 @@ export class MessagesService {
     ) {
       throw new BadRequestException('Please provide an image content');
     }
-    const chat = await this.chatsService.findOneById(createMessageDto.chatId);
-    if (!chat) {
-      throw new BadRequestException('Please provide a valid chat id');
-    }
-    const sender = await this.usersService.findOneById(
-      createMessageDto.senderId,
+    const { chat, sender, receiver, product } = await this._validateRelations(
+      createMessageDto,
     );
-    if (!sender) {
-      throw new BadRequestException('Please provide a valid sender id');
-    }
-    const receiver = await this.usersService.findOneById(
-      createMessageDto.receiverId,
-    );
-    if (!receiver) {
-      throw new BadRequestException('Please provide a valid receiver id');
-    }
-    const product = await this.productsService.findOneById(
-      createMessageDto.productId,
-    );
-    if (!product) {
-      throw new BadRequestException('Please provide a valid product id');
-    }
     createMessageDto.content =
       createMessageUploadFilesDto.content?.name || createMessageDto.content;
     const message = await this.repo.create(createMessageDto);
@@ -103,7 +85,7 @@ export class MessagesService {
     return this.repo.remove(message);
   }
 
-  // prepare create message upload files dtos from files.
+  // prepare create message upload files dto from files.
   private async _prepareCreateMessageUploadFilesDtoFromFiles(
     files: any,
   ): Promise<CreateMessageUploadFilesDto> {
@@ -112,7 +94,39 @@ export class MessagesService {
       files?.content,
     );
     await validateDto(createMessageUploadFilesDto);
-    await saveFile(Constants.messagesImagesPath, createMessageUploadFilesDto.content.name, createMessageUploadFilesDto.content);
+    await saveFile(
+      Constants.messagesImagesPath,
+      createMessageUploadFilesDto.content.name,
+      createMessageUploadFilesDto.content,
+    );
     return createMessageUploadFilesDto;
+  }
+
+  private async _validateRelations(
+    createMessageDto: CreateMessageDto,
+  ): Promise<{ chat: Chat; sender: User; receiver: User; product: Product }> {
+    const chat = await this.chatsService.findOneById(createMessageDto.chatId);
+    if (!chat) {
+      throw new BadRequestException('Please provide a valid chat id');
+    }
+    const sender = await this.usersService.findOneById(
+      createMessageDto.senderId,
+    );
+    if (!sender) {
+      throw new BadRequestException('Please provide a valid sender id');
+    }
+    const receiver = await this.usersService.findOneById(
+      createMessageDto.receiverId,
+    );
+    if (!receiver) {
+      throw new BadRequestException('Please provide a valid receiver id');
+    }
+    const product = await this.productsService.findOneById(
+      createMessageDto.productId,
+    );
+    if (!product) {
+      throw new BadRequestException('Please provide a valid product id');
+    }
+    return { chat, sender, receiver, product };
   }
 }

@@ -8,11 +8,9 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { log } from 'node:console';
 import { CreateOrUpdateUserUploadFilesDto } from './dtos/create-or-update-user-upload-files.dto';
 import { UploadImageDto } from 'src/config/dtos/upload-image-dto';
-import { validateDto } from 'src/config/helpers';
-import * as fs from 'fs-extra';
+import { saveFile, validateDto } from 'src/config/helpers';
 import { Constants } from 'src/config/constants';
 import { unlinkSync } from 'fs';
 
@@ -20,7 +18,7 @@ import { unlinkSync } from 'fs';
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly repo: Repository<User>,
-  ) { }
+  ) {}
 
   // find by email.
   findByEmail(email: string, withPassword?: boolean) {
@@ -51,11 +49,14 @@ export class UsersService {
         throw new BadRequestException('Email is already exists.');
       }
     }
-    const createUserUploadFilesDto = await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
+    const createUserUploadFilesDto =
+      await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
     if (createUserUploadFilesDto.image) {
       createUserDto.image = createUserUploadFilesDto.image.name;
     }
-    const createdUser = await this.repo.save(await this.repo.create(createUserDto));
+    const createdUser = await this.repo.save(
+      await this.repo.create(createUserDto),
+    );
     delete createdUser.password;
     return createdUser;
   }
@@ -86,7 +87,8 @@ export class UsersService {
       }
     }
     if (files) {
-      const createOrUpdateUserUploadFilesDto = await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
+      const createOrUpdateUserUploadFilesDto =
+        await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
       if (createOrUpdateUserUploadFilesDto.image) {
         unlinkSync(Constants.usersImagesPath + user.image);
         updateUserDto.image = createOrUpdateUserUploadFilesDto.image.name;
@@ -112,18 +114,21 @@ export class UsersService {
     ) as (keyof User)[];
   }
 
-  // prepare create or update user upload files dtos from files.
+  // prepare create or update user upload files dto from files.
   private async _prepareCreateOrUpdateUserUploadFilesDtoFromFiles(
     files: any,
   ): Promise<CreateOrUpdateUserUploadFilesDto> {
-    const createOrUpdateUserUploadFilesDto = new CreateOrUpdateUserUploadFilesDto();
-    createOrUpdateUserUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
+    const createOrUpdateUserUploadFilesDto =
+      new CreateOrUpdateUserUploadFilesDto();
+    createOrUpdateUserUploadFilesDto.image = UploadImageDto.fromFile(
+      files?.image,
+    );
     await validateDto(createOrUpdateUserUploadFilesDto);
-    await fs.ensureDir(Constants.usersImagesPath);
-    await createOrUpdateUserUploadFilesDto.image?.mv(
-      Constants.usersImagesPath + createOrUpdateUserUploadFilesDto.image.name,
+    await saveFile(
+      Constants.usersImagesPath,
+      createOrUpdateUserUploadFilesDto.image.name,
+      createOrUpdateUserUploadFilesDto.image,
     );
     return createOrUpdateUserUploadFilesDto;
   }
-
 }

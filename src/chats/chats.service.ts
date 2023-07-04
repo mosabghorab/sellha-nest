@@ -8,6 +8,8 @@ import { UsersService } from '../users/users.service';
 import { ProductsService } from '../products/products.service';
 import { FindOptionsRelations } from 'typeorm/find-options/FindOptionsRelations';
 import { FindChatsDto } from './dtos/find-chats.dto';
+import { User } from '../users/entities/user.entity';
+import { Product } from '../products/entities/product.entity';
 
 @Injectable()
 export class ChatsService {
@@ -18,20 +20,9 @@ export class ChatsService {
   ) {}
 
   async create(createChatDto: CreateChatDto) {
-    const buyer = await this.usersService.findOneById(createChatDto.buyerId);
-    if (!buyer) {
-      throw new BadRequestException('Please provide a valid buyer id');
-    }
-    const seller = await this.usersService.findOneById(createChatDto.sellerId);
-    if (!seller) {
-      throw new BadRequestException('Please provide a valid seller id');
-    }
-    const product = await this.productsService.findOneById(
-      createChatDto.productId,
+    const { buyer, seller, product } = await this._validateRelations(
+      createChatDto,
     );
-    if (!product) {
-      throw new BadRequestException('Please provide a valid product id');
-    }
     const chat = await this.repo.create(createChatDto);
     chat.buyer = buyer;
     chat.seller = seller;
@@ -86,5 +77,25 @@ export class ChatsService {
       throw new BadRequestException('Please provide a valid chat id');
     }
     return this.repo.remove(chat);
+  }
+
+  private async _validateRelations(
+    createChatDto: CreateChatDto,
+  ): Promise<{ buyer: User; seller: User; product: Product }> {
+    const buyer = await this.usersService.findOneById(createChatDto.buyerId);
+    if (!buyer) {
+      throw new BadRequestException('Please provide a valid buyer id');
+    }
+    const seller = await this.usersService.findOneById(createChatDto.sellerId);
+    if (!seller) {
+      throw new BadRequestException('Please provide a valid seller id');
+    }
+    const product = await this.productsService.findOneById(
+      createChatDto.productId,
+    );
+    if (!product) {
+      throw new BadRequestException('Please provide a valid product id');
+    }
+    return { buyer, seller, product };
   }
 }

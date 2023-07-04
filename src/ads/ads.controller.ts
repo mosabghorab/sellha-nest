@@ -1,14 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UploadedFiles } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UploadedFiles,
+  UseGuards,
+} from '@nestjs/common';
 import { AdsService } from './ads.service';
-import { UpdateAdDto } from './dto/update-ad.dto';
+import { UpdateAdDto } from './dtos/update-ad.dto';
 import { ApiResponse } from 'src/config/classes/api-response';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { CreateAdDto } from './dto/create-ad.dto';
+import { CreateAdDto } from './dtos/create-ad.dto';
 
 @Controller('ads')
 export class AdsController {
-  constructor(private readonly adsService: AdsService) { }
+  constructor(private readonly adsService: AdsService) {}
 
   @UseGuards(AdminGuard)
   @Post()
@@ -22,7 +32,6 @@ export class AdsController {
     );
   }
 
-
   @UseGuards(AuthGuard)
   @Get()
   async findAll() {
@@ -33,7 +42,6 @@ export class AdsController {
       await this.adsService.findAll(),
     );
   }
-
 
   @UseGuards(AdminGuard)
   @Patch(':id')
@@ -49,6 +57,7 @@ export class AdsController {
       await this.adsService.update(id, updateAdDto, files),
     );
   }
+
   @UseGuards(AdminGuard)
   @Delete(':id')
   async remove(@Param('id') id: number) {

@@ -19,9 +19,8 @@ import { unlinkSync } from 'fs';
 import { FindOptionsRelations } from 'typeorm/find-options/FindOptionsRelations';
 import { UpdateProductUploadFilesDto } from './dtos/update-product-upload-files.dto';
 import { UploadImageDto } from '../config/dtos/upload-image-dto';
-import { validateDto } from '../config/helpers';
+import { saveFile, validateDto } from '../config/helpers';
 import { Constants } from '../config/constants';
-import * as fs from 'fs-extra';
 
 @Injectable()
 export class ProductsService {
@@ -37,7 +36,7 @@ export class ProductsService {
   // create new product.
   async create(userId: number, createProductDto: CreateProductDto, files: any) {
     const createProductUploadFilesDto =
-      await this.prepareCreateProductUploadFilesDtoFromFiles(files);
+      await this._prepareCreateProductUploadFilesDtoFromFiles(files);
     const user = await this.usersService.findOneById(userId);
     const category = await this.categoriesService.findOneById(
       createProductDto.categoryId,
@@ -139,7 +138,7 @@ export class ProductsService {
   // update.
   async update(id: number, updateProductDto: UpdateProductDto, files: any) {
     const updateProductUploadFilesDto =
-      await this.prepareUpdateProductUploadFilesDtoFromFiles(files);
+      await this._prepareUpdateProductUploadFilesDtoFromFiles(files);
     const product = await this.findOneById(id, { images: true });
     if (!product) {
       throw new NotFoundException('Product not found.');
@@ -200,8 +199,8 @@ export class ProductsService {
     // await this.repo.save(fakeData);
   }
 
-  // prepare create product upload files dtos from files.
-  private async prepareCreateProductUploadFilesDtoFromFiles(
+  // prepare create product upload files dto from files.
+  private async _prepareCreateProductUploadFilesDtoFromFiles(
     files: any,
   ): Promise<CreateProductUploadFilesDto> {
     const imagesUploadImageDto = [];
@@ -214,18 +213,19 @@ export class ProductsService {
     );
     createProductUploadFilesDto.images = imagesUploadImageDto;
     await validateDto(createProductUploadFilesDto);
-    await fs.ensureDir(Constants.productsImagesPath);
-    await createProductUploadFilesDto.mainImage.mv(
-      Constants.productsImagesPath + createProductUploadFilesDto.mainImage.name,
+    await saveFile(
+      Constants.productsImagesPath,
+      createProductUploadFilesDto.mainImage?.name,
+      createProductUploadFilesDto.mainImage,
     );
     for (const image of createProductUploadFilesDto.images) {
-      await image.mv(Constants.productsImagesPath + image.name);
+      await saveFile(Constants.productsImagesPath, image.name, image);
     }
     return createProductUploadFilesDto;
   }
 
-  // prepare update product upload files dtos from files.
-  private async prepareUpdateProductUploadFilesDtoFromFiles(
+  // prepare update product upload files dto from files.
+  private async _prepareUpdateProductUploadFilesDtoFromFiles(
     files: any,
   ): Promise<UpdateProductUploadFilesDto> {
     const imagesUploadImageDto = [];
@@ -238,12 +238,13 @@ export class ProductsService {
     );
     updateProductUploadFilesDto.images = imagesUploadImageDto;
     await validateDto(updateProductUploadFilesDto);
-    await fs.ensureDir(Constants.productsImagesPath);
-    await updateProductUploadFilesDto.mainImage?.mv(
-      Constants.productsImagesPath + updateProductUploadFilesDto.mainImage.name,
+    await saveFile(
+      Constants.productsImagesPath,
+      updateProductUploadFilesDto.mainImage?.name,
+      updateProductUploadFilesDto.mainImage,
     );
     for (const image of updateProductUploadFilesDto.images) {
-      await image.mv(Constants.productsImagesPath + image.name);
+      await saveFile(Constants.productsImagesPath, image.name, image);
     }
     return updateProductUploadFilesDto;
   }

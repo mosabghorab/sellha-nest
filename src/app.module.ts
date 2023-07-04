@@ -27,6 +27,12 @@ import { CommentsModule } from './comments/comments.module';
 import { Comment } from './comments/entities/comment.entity';
 import { AdsModule } from './ads/ads.module';
 import { Ad } from './ads/entities/ad.entity';
+import { RolesModule } from './roles/roles.module';
+import { Role } from './roles/entities/role.entity';
+import { PermissionsModule } from './permissions/permissions.module';
+import { Permission } from './permissions/entities/permission';
+import { RolesPermissionsModule } from './roles-permissions/roles-permissions.module';
+import { RolesPermissions } from './roles-permissions/entities/roles-permissions.entity';
 
 @Module({
   imports: [
@@ -48,6 +54,9 @@ import { Ad } from './ads/entities/ad.entity';
         Message,
         Comment,
         Ad,
+        Role,
+        Permission,
+        RolesPermissions,
       ],
       synchronize: true,
     }),
@@ -67,6 +76,9 @@ import { Ad } from './ads/entities/ad.entity';
     MessagesModule,
     CommentsModule,
     AdsModule,
+    RolesModule,
+    PermissionsModule,
+    RolesPermissionsModule,
   ],
 })
 export class AppModule {}
