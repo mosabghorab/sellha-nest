@@ -33,6 +33,10 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { Permission } from './permissions/entities/permission';
 import { RolesPermissionsModule } from './roles-permissions/roles-permissions.module';
 import { RolesPermissions } from './roles-permissions/entities/roles-permissions.entity';
+import { UsersRolesModule } from './users-roles/users-roles.module';
+import { UsersRoles } from './users-roles/entities/users-roles.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/guards/auth.guard';
 
 @Module({
   imports: [
@@ -57,6 +61,7 @@ import { RolesPermissions } from './roles-permissions/entities/roles-permissions
         Role,
         Permission,
         RolesPermissions,
+        UsersRoles,
       ],
       synchronize: true,
     }),
@@ -79,6 +84,13 @@ import { RolesPermissions } from './roles-permissions/entities/roles-permissions
     RolesModule,
     PermissionsModule,
     RolesPermissionsModule,
+    UsersRolesModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
 })
 export class AppModule {}

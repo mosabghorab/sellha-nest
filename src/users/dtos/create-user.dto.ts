@@ -1,12 +1,11 @@
 import {
+  IsArray,
   IsEmail,
-  IsEnum,
   IsOptional,
   IsPhoneNumber,
   IsString,
-  IsUrl,
 } from 'class-validator';
-import { UserRole } from 'src/config/enums/user-role.enum';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
@@ -31,7 +30,7 @@ export class CreateUserDto {
   @IsString()
   image: string;
 
-  @IsOptional()
-  @IsEnum(UserRole)
-  role: UserRole;
+  @IsArray()
+  @Transform(({ value }) => JSON.parse(value))
+  rolesIds: number[];
 }

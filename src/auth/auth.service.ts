@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CheckPhoneDto } from './dtos/check-phone.dto';
 import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
@@ -37,26 +33,27 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return true;
+    return user;
   }
 
   // submit code.
   async submitCode(submitCodeDto: SubmitCodeDto) {
-    const user: User = await this.usersService.findByPhone(submitCodeDto.phone);
+    const user: User = await this.usersService.findByPhone(
+      submitCodeDto.phone,
+      { usersRoles: { role: { rolesPermissions: { permission: true } } } },
+    );
     if (!user) {
       throw new NotFoundException('User not found');
     }
     const accessToken = await this.jwtService.signAsync({
       id: user.id,
-      role: user.role,
+      usersRoles: user.usersRoles,
     });
     return { ...user, accessToken };
   }
 
   // sign up.
-  async signUp(createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto);
-    if (!user) throw new InternalServerErrorException('something went wrong');
-    return true;
+  signUp(createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 }

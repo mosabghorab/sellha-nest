@@ -23,14 +23,6 @@ export class RolesPermissionsService {
     return rolesPermissions;
   }
 
-  findAll() {
-    return `This action returns all rolesPermissions`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} rolesPermission`;
-  }
-
   async removeByRoleId(roleId: number) {
     const rolesPermissions = await this.repo.find({ where: { roleId } });
     for (const rolePermission of rolesPermissions) {

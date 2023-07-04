@@ -9,7 +9,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { compare, genSaltSync, hashSync } from 'bcryptjs';
-import { UserRole } from 'src/config/enums/user-role.enum';
 import { Product } from '../../products/entities/product.entity';
 import { Favorite } from '../../favorite/entities/favorite.entity';
 import { Order } from '../../orders/entities/order.entity';
@@ -17,14 +16,12 @@ import { Category } from '../../categories/entities/category.entity';
 import { Chat } from '../../chats/entities/chat.entity';
 import { Message } from '../../messages/entities/message.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
+import { UsersRoles } from '../../users-roles/entities/users-roles.entity';
 
 @Entity({ orderBy: { createdAt: 'DESC' } })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
-  role: UserRole;
 
   @Column()
   name: string;
@@ -90,6 +87,9 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.buyer, { cascade: true })
   commentsAsBuyer: Comment[];
+
+  @OneToMany(() => UsersRoles, (userRole) => userRole.user, { cascade: true })
+  usersRoles: UsersRoles[];
 
   // hooks.
   @BeforeInsert()

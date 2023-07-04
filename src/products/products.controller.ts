@@ -8,21 +8,26 @@ import {
   Post,
   Query,
   UploadedFiles,
-  UseGuards,
 } from '@nestjs/common';
-import { AdminGuard } from '../auth/guards/admin.guard';
 import { ApiResponse } from '../config/classes/api-response';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { CurrentUser } from 'src/users/custom-decorators/current-user-decorator';
 import { FilterProductsDto } from './dtos/filter-products.dto';
 import { CreateProductDto } from './dtos/create-product.dto';
+import { Strict } from '../config/metadata/strict.metadata';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
+import { Public } from '../config/metadata/public.metadata';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.PRODUCTS,
+  })
   @Post()
   async create(
     @CurrentUser() user: any,
@@ -37,7 +42,10 @@ export class ProductsController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.UPDATE,
+    permissionGroup: PermissionGroup.PRODUCTS,
+  })
   @Patch(':id')
   async update(
     @Param('id') id: number,
@@ -52,6 +60,7 @@ export class ProductsController {
     );
   }
 
+  @Public()
   @Get(':id')
   async getOne(@Param('id') id: number) {
     return new ApiResponse(
@@ -62,6 +71,7 @@ export class ProductsController {
     );
   }
 
+  @Public()
   @Get()
   async getAll(@Query() filterProductsDto: FilterProductsDto) {
     return new ApiResponse(
@@ -72,7 +82,10 @@ export class ProductsController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.PRODUCTS,
+  })
   @Delete(':id')
   async delete(@Param('id') id: number) {
     return new ApiResponse(

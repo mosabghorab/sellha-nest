@@ -13,11 +13,14 @@ import { UploadImageDto } from 'src/config/dtos/upload-image-dto';
 import { saveFile, validateDto } from 'src/config/helpers';
 import { Constants } from 'src/config/constants';
 import { unlinkSync } from 'fs';
+import { UsersRolesService } from '../users-roles/users-roles.service';
+import { FindOptionsRelations } from 'typeorm/browser';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly repo: Repository<User>,
+    private readonly usersRolesService: UsersRolesService,
   ) {}
 
   // find by email.
@@ -31,9 +34,10 @@ export class UsersService {
   }
 
   // find by phone.
-  findByPhone(phone: string) {
+  findByPhone(phone: string, relations?: FindOptionsRelations<User>) {
     return this.repo.findOne({
       where: { phone },
+      relations: relations,
     });
   }
 
@@ -54,9 +58,13 @@ export class UsersService {
     if (createUserUploadFilesDto.image) {
       createUserDto.image = createUserUploadFilesDto.image.name;
     }
-    const createdUser = await this.repo.save(
-      await this.repo.create(createUserDto),
+    const userToCreate = await this.repo.create(createUserDto);
+    const usersRoles = await this.usersRolesService.create(
+      userToCreate.id,
+      createUserDto.rolesIds,
     );
+    userToCreate.usersRoles = usersRoles;
+    const createdUser = await this.repo.save(userToCreate);
     delete createdUser.password;
     return createdUser;
   }
@@ -86,14 +94,20 @@ export class UsersService {
         throw new BadRequestException('Email is already exists.');
       }
     }
-    if (files) {
-      const createOrUpdateUserUploadFilesDto =
-        await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
-      if (createOrUpdateUserUploadFilesDto.image) {
-        unlinkSync(Constants.usersImagesPath + user.image);
-        updateUserDto.image = createOrUpdateUserUploadFilesDto.image.name;
-      }
+    const createOrUpdateUserUploadFilesDto =
+      await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
+    if (createOrUpdateUserUploadFilesDto.image) {
+      unlinkSync(Constants.usersImagesPath + user.image);
+      updateUserDto.image = createOrUpdateUserUploadFilesDto.image.name;
     }
+    if (updateUserDto.rolesIds) {
+      await this.usersRolesService.removeByUserId(id);
+      user.usersRoles = await this.usersRolesService.create(
+        id,
+        updateUserDto.rolesIds,
+      );
+    }
+    delete updateUserDto.rolesIds;
     Object.assign(user, updateUserDto);
     const updatedUser = await this.repo.save(user);
     delete updatedUser.password;
@@ -124,11 +138,12 @@ export class UsersService {
       files?.image,
     );
     await validateDto(createOrUpdateUserUploadFilesDto);
-    await saveFile(
-      Constants.usersImagesPath,
-      createOrUpdateUserUploadFilesDto.image.name,
-      createOrUpdateUserUploadFilesDto.image,
-    );
+    if (createOrUpdateUserUploadFilesDto.image)
+      await saveFile(
+        Constants.usersImagesPath,
+        createOrUpdateUserUploadFilesDto.image.name,
+        createOrUpdateUserUploadFilesDto.image,
+      );
     return createOrUpdateUserUploadFilesDto;
   }
 }

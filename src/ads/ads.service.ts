@@ -75,7 +75,7 @@ export class AdsService {
     await validateDto(createAdUploadFilesDto);
     await saveFile(
       Constants.adsImagesPath,
-      createAdUploadFilesDto.image?.name,
+      createAdUploadFilesDto.image.name,
       createAdUploadFilesDto.image,
     );
     return createAdUploadFilesDto;
@@ -88,11 +88,12 @@ export class AdsService {
     const updateAdUploadFilesDto = new UpdateAdUploadedFilesDto();
     updateAdUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(updateAdUploadFilesDto);
-    await saveFile(
-      Constants.adsImagesPath,
-      updateAdUploadFilesDto.image?.name,
-      updateAdUploadFilesDto.image,
-    );
+    if (updateAdUploadFilesDto.image)
+      await saveFile(
+        Constants.adsImagesPath,
+        updateAdUploadFilesDto.image.name,
+        updateAdUploadFilesDto.image,
+      );
     return updateAdUploadFilesDto;
   }
 }

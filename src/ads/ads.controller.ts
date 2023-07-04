@@ -7,20 +7,24 @@ import {
   Patch,
   Post,
   UploadedFiles,
-  UseGuards,
 } from '@nestjs/common';
 import { AdsService } from './ads.service';
 import { UpdateAdDto } from './dtos/update-ad.dto';
 import { ApiResponse } from 'src/config/classes/api-response';
-import { AdminGuard } from 'src/auth/guards/admin.guard';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CreateAdDto } from './dtos/create-ad.dto';
+import { Strict } from '../config/metadata/strict.metadata';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
+import { Public } from '../config/metadata/public.metadata';
 
 @Controller('ads')
 export class AdsController {
   constructor(private readonly adsService: AdsService) {}
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.ADS,
+  })
   @Post()
   async create(@Body() createAdDto: CreateAdDto, @UploadedFiles() files: any) {
     console.log(files);
@@ -32,7 +36,7 @@ export class AdsController {
     );
   }
 
-  @UseGuards(AuthGuard)
+  @Public()
   @Get()
   async findAll() {
     return new ApiResponse(
@@ -43,7 +47,10 @@ export class AdsController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.UPDATE,
+    permissionGroup: PermissionGroup.ADS,
+  })
   @Patch(':id')
   async update(
     @Param('id') id: number,
@@ -58,7 +65,10 @@ export class AdsController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.ADS,
+  })
   @Delete(':id')
   async remove(@Param('id') id: number) {
     return new ApiResponse(

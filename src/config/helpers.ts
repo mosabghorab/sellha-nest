@@ -2,8 +2,9 @@ import { BadRequestException, ValidationError } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { randomBytes } from 'crypto';
 import * as fs from 'fs-extra';
-import { unlinkSync } from 'fs';
-import { Constants } from './constants';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
+import { UsersRoles } from '../users-roles/entities/users-roles.entity';
 
 export const extractTokenFromHeader = (
   request: Request,
@@ -42,13 +43,24 @@ export const generateUniqueFileName = (originalName: string): string => {
   return `${timestamp}-${randomString}.${fileExtension}`;
 };
 
-
 export const saveFile = async (
   filepath: string,
   filename: string,
   file: any,
-) : Promise<boolean>=> {
+): Promise<boolean> => {
   await fs.ensureDir(filepath);
   await file.mv(filepath + filename);
   return true;
-}
+};
+
+export const can = (
+  action: PermissionAction,
+  group: PermissionGroup,
+  usersRoles: UsersRoles[],
+) => {
+  return usersRoles.some((e) =>
+    e.role.rolesPermissions.some(
+      (p) => p.permission.action === action && p.permission.group === group,
+    ),
+  );
+};

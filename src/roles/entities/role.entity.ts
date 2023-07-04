@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { RolesPermissions } from '../../roles-permissions/entities/roles-permissions.entity';
+import { UsersRoles } from '../../users-roles/entities/users-roles.entity';
 
 @Entity()
 export class Role {
@@ -30,4 +31,7 @@ export class Role {
     { cascade: true },
   )
   rolesPermissions: RolesPermissions[];
+
+  @OneToMany(() => UsersRoles, (userRole) => userRole.role, { cascade: true })
+  usersRoles: UsersRoles[];
 }

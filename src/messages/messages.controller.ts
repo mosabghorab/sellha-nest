@@ -7,20 +7,24 @@ import {
   Post,
   Query,
   UploadedFiles,
-  UseGuards,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dtos/create-message.dto';
-import { AuthGuard } from '../auth/guards/auth.guard';
 import { ApiResponse } from '../config/classes/api-response';
 import { FindMessagesDto } from './dtos/find-messages.dto';
 import { CurrentUser } from '../users/custom-decorators/current-user-decorator';
+import { Strict } from '../config/metadata/strict.metadata';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
 
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
-  @UseGuards(AuthGuard)
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.MESSAGES,
+  })
   @Post()
   async create(
     @Body() createMessageDto: CreateMessageDto,
@@ -34,7 +38,10 @@ export class MessagesController {
     );
   }
 
-  @UseGuards(AuthGuard)
+  @Strict({
+    permissionAction: PermissionAction.VIEW,
+    permissionGroup: PermissionGroup.MESSAGES,
+  })
   @Get()
   async findAll(
     @CurrentUser() user: any,
@@ -48,7 +55,10 @@ export class MessagesController {
     );
   }
 
-  @UseGuards(AuthGuard)
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.MESSAGES,
+  })
   @Delete(':id')
   async remove(@Param('id') id: number) {
     return new ApiResponse(

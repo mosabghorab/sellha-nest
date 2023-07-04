@@ -6,20 +6,24 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { AdminGuard } from '../auth/guards/admin.guard';
 import { ApiResponse } from '../config/classes/api-response';
 import { ReasonsService } from './reasons.service';
 import { CreateReasonDto } from './dtos/create-reason.dto';
 import { UpdateReasonDto } from './dtos/update-reason.dto';
-import { AuthGuard } from '../auth/guards/auth.guard';
+import { Strict } from '../config/metadata/strict.metadata';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
+import { Public } from '../config/metadata/public.metadata';
 
 @Controller('reasons')
 export class ReasonsController {
   constructor(private readonly reasonsService: ReasonsService) {}
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.REASONS,
+  })
   @Post()
   async create(@Body() createReasonDto: CreateReasonDto) {
     return new ApiResponse(
@@ -30,7 +34,10 @@ export class ReasonsController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.UPDATE,
+    permissionGroup: PermissionGroup.REASONS,
+  })
   @Patch(':id')
   async update(
     @Param('id') id: number,
@@ -44,7 +51,7 @@ export class ReasonsController {
     );
   }
 
-  @UseGuards(AuthGuard)
+  @Public()
   @Get()
   async getAll() {
     return new ApiResponse(
@@ -55,7 +62,10 @@ export class ReasonsController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.REASONS,
+  })
   @Delete(':id')
   async delete(@Param('id') id: number) {
     return new ApiResponse(

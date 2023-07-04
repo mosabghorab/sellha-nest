@@ -6,20 +6,24 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiResponse } from '../config/classes/api-response';
 import { CurrentUser } from '../users/custom-decorators/current-user-decorator';
-import { AdminGuard } from '../auth/guards/admin.guard';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { Strict } from '../config/metadata/strict.metadata';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.ORDERS,
+  })
   @Post()
   async create(
     @CurrentUser() user: any,
@@ -33,6 +37,10 @@ export class OrdersController {
     );
   }
 
+  @Strict({
+    permissionAction: PermissionAction.VIEW,
+    permissionGroup: PermissionGroup.ORDERS,
+  })
   @Get()
   async findAll() {
     return new ApiResponse(
@@ -43,6 +51,10 @@ export class OrdersController {
     );
   }
 
+  @Strict({
+    permissionAction: PermissionAction.VIEW,
+    permissionGroup: PermissionGroup.ORDERS,
+  })
   @Get(':id')
   async findOne(@Param('id') id: number) {
     return new ApiResponse(
@@ -53,6 +65,10 @@ export class OrdersController {
     );
   }
 
+  @Strict({
+    permissionAction: PermissionAction.UPDATE,
+    permissionGroup: PermissionGroup.ORDERS,
+  })
   @Patch(':id')
   async update(
     @Param('id') id: number,
@@ -66,7 +82,10 @@ export class OrdersController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.ORDERS,
+  })
   @Delete(':id')
   async remove(@Param('id') id: number) {
     return new ApiResponse(

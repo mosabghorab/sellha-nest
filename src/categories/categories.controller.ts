@@ -7,20 +7,25 @@ import {
   Patch,
   Post,
   UploadedFiles,
-  UseGuards,
 } from '@nestjs/common';
 import { CreateCategoryDto } from './dtos/create-category.dto';
 import { CategoriesService } from './categories.service';
 import { ApiResponse } from '../config/classes/api-response';
-import { AdminGuard } from '../auth/guards/admin.guard';
 import { UpdateCategoryDto } from './dtos/update-category.dto';
 import { CurrentUser } from '../users/custom-decorators/current-user-decorator';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
+import { Strict } from '../config/metadata/strict.metadata';
+import { Public } from '../config/metadata/public.metadata';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.CATEGORIES,
+  })
   @Post()
   async create(
     @CurrentUser() user: any,
@@ -35,7 +40,10 @@ export class CategoriesController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.UPDATE,
+    permissionGroup: PermissionGroup.CATEGORIES,
+  })
   @Patch(':id')
   async update(
     @Param('id') id: number,
@@ -50,6 +58,7 @@ export class CategoriesController {
     );
   }
 
+  @Public()
   @Get()
   async findAll() {
     return new ApiResponse(
@@ -60,7 +69,10 @@ export class CategoriesController {
     );
   }
 
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.CATEGORIES,
+  })
   @Delete(':id')
   async delete(@Param('id') id: number) {
     return new ApiResponse(

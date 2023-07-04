@@ -97,11 +97,12 @@ export class CategoriesService {
     const updateCategoryUploadFilesDto = new UpdateCategoryUploadedFilesDto();
     updateCategoryUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(updateCategoryUploadFilesDto);
-    await saveFile(
-      Constants.categoriesImagesPath,
-      updateCategoryUploadFilesDto.image?.name,
-      updateCategoryUploadFilesDto.image,
-    );
+    if (updateCategoryUploadFilesDto.image)
+      await saveFile(
+        Constants.categoriesImagesPath,
+        updateCategoryUploadFilesDto.image.name,
+        updateCategoryUploadFilesDto.image,
+      );
     return updateCategoryUploadFilesDto;
   }
 }

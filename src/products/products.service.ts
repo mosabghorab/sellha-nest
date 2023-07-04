@@ -238,11 +238,12 @@ export class ProductsService {
     );
     updateProductUploadFilesDto.images = imagesUploadImageDto;
     await validateDto(updateProductUploadFilesDto);
-    await saveFile(
-      Constants.productsImagesPath,
-      updateProductUploadFilesDto.mainImage?.name,
-      updateProductUploadFilesDto.mainImage,
-    );
+    if (updateProductUploadFilesDto.mainImage)
+      await saveFile(
+        Constants.productsImagesPath,
+        updateProductUploadFilesDto.mainImage?.name,
+        updateProductUploadFilesDto.mainImage,
+      );
     for (const image of updateProductUploadFilesDto.images) {
       await saveFile(Constants.productsImagesPath, image.name, image);
     }

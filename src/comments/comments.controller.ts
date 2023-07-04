@@ -1,17 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dtos/create-comment.dto';
-import { UpdateCommentDto } from './dtos/update-comment.dto';
 import { ApiResponse } from 'src/config/classes/api-response';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CurrentUser } from 'src/users/custom-decorators/current-user-decorator';
-import { AdminGuard } from 'src/auth/guards/admin.guard';
+import { Strict } from '../config/metadata/strict.metadata';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
 
-@UseGuards(AuthGuard)
 @Controller('comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) { }
+  constructor(private readonly commentsService: CommentsService) {}
 
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.COMMENTS,
+  })
   @Post()
   async create(@Body() createCommentDto: CreateCommentDto) {
     return new ApiResponse(
@@ -22,6 +25,10 @@ export class CommentsController {
     );
   }
 
+  @Strict({
+    permissionAction: PermissionAction.VIEW,
+    permissionGroup: PermissionGroup.COMMENTS,
+  })
   @Get()
   async findAll(@CurrentUser() user: any) {
     return new ApiResponse(
@@ -32,8 +39,10 @@ export class CommentsController {
     );
   }
 
-
-  @UseGuards(AdminGuard)
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.COMMENTS,
+  })
   @Delete(':id')
   async remove(@Param('id') id: number) {
     return new ApiResponse(

@@ -1,21 +1,19 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import { AuthGuard } from '../auth/guards/auth.guard';
+import { Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { CurrentUser } from '../users/custom-decorators/current-user-decorator';
 import { ApiResponse } from '../config/classes/api-response';
 import { FavoriteService } from './favorite.service';
+import { Strict } from '../config/metadata/strict.metadata';
+import { PermissionAction } from '../permissions/enums/permission-action-enum';
+import { PermissionGroup } from '../permissions/enums/permission-group-enum';
 
-@UseGuards(AuthGuard)
 @Controller('favorite')
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
+  @Strict({
+    permissionAction: PermissionAction.VIEW,
+    permissionGroup: PermissionGroup.FAVORITE,
+  })
   @Get()
   async getMyFavorite(@CurrentUser() user: any) {
     return new ApiResponse(
@@ -26,6 +24,10 @@ export class FavoriteController {
     );
   }
 
+  @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.FAVORITE,
+  })
   @Post(':id')
   async addToFavorite(
     @CurrentUser() user: any,
@@ -39,6 +41,10 @@ export class FavoriteController {
     );
   }
 
+  @Strict({
+    permissionAction: PermissionAction.DELETE,
+    permissionGroup: PermissionGroup.FAVORITE,
+  })
   @Delete(':id')
   async removeFromFavorite(
     @CurrentUser() user: any,
