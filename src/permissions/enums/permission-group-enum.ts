@@ -11,4 +11,5 @@ export enum PermissionGroup {
   REPORTS = 'REPORTS',
   ROLES = 'ROLES',
   USERS = 'USERS',
+  SETTINGS = 'SETTINGS',
 }

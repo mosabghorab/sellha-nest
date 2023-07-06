@@ -1,6 +1,6 @@
 import { IsPhoneNumber, IsString } from 'class-validator';
 
-export class SubmitCodeDto {
+export class SignInWithPhoneDto {
   @IsPhoneNumber()
   phone: string;
 

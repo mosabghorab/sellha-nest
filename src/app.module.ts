@@ -37,6 +37,8 @@ import { UsersRolesModule } from './users-roles/users-roles.module';
 import { UsersRoles } from './users-roles/entities/users-roles.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/guards/auth.guard';
+import { SettingsModule } from './settings/settings.module';
+import { Setting } from './settings/entities/setting.entity';
 
 @Module({
   imports: [
@@ -62,6 +64,7 @@ import { AuthGuard } from './auth/guards/auth.guard';
         Permission,
         RolesPermissions,
         UsersRoles,
+        Setting,
       ],
       synchronize: true,
     }),
@@ -85,6 +88,7 @@ import { AuthGuard } from './auth/guards/auth.guard';
     PermissionsModule,
     RolesPermissionsModule,
     UsersRolesModule,
+    SettingsModule,
   ],
   providers: [
     {

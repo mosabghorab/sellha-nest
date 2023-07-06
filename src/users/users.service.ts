@@ -15,6 +15,7 @@ import { Constants } from 'src/config/constants';
 import { unlinkSync } from 'fs';
 import { UsersRolesService } from '../users-roles/users-roles.service';
 import { FindOptionsRelations } from 'typeorm/browser';
+import { SignUpDto } from '../auth/dtos/sign-up.dto';
 
 @Injectable()
 export class UsersService {
@@ -24,12 +25,17 @@ export class UsersService {
   ) {}
 
   // find by email.
-  findByEmail(email: string, withPassword?: boolean) {
+  findByEmail(
+    email: string,
+    withPassword?: boolean,
+    relations?: FindOptionsRelations<User>,
+  ) {
     return this.repo.findOne({
       where: {
         email,
       },
       select: withPassword ? this._getCols() : null,
+      relations: relations,
     });
   }
 
@@ -42,13 +48,13 @@ export class UsersService {
   }
 
   // create.
-  async create(createUserDto: CreateUserDto, files?: any) {
-    const userByPhone = await this.findByPhone(createUserDto.phone);
+  async create(dto: CreateUserDto | SignUpDto, files?: any) {
+    const userByPhone = await this.findByPhone(dto.phone);
     if (userByPhone) {
       throw new BadRequestException('Phone is already exists.');
     }
-    if (createUserDto.email) {
-      const userByEmail = await this.findByEmail(createUserDto.email);
+    if (dto.email) {
+      const userByEmail = await this.findByEmail(dto.email);
       if (userByEmail) {
         throw new BadRequestException('Email is already exists.');
       }
@@ -56,12 +62,12 @@ export class UsersService {
     const createUserUploadFilesDto =
       await this._prepareCreateOrUpdateUserUploadFilesDtoFromFiles(files);
     if (createUserUploadFilesDto.image) {
-      createUserDto.image = createUserUploadFilesDto.image.name;
+      dto.image = createUserUploadFilesDto.image.name;
     }
-    const userToCreate = await this.repo.create(createUserDto);
+    const userToCreate = await this.repo.create(dto);
     const usersRoles = await this.usersRolesService.create(
       userToCreate.id,
-      createUserDto.rolesIds,
+      dto instanceof CreateUserDto ? dto.rolesIds : [8],
     );
     userToCreate.usersRoles = usersRoles;
     const createdUser = await this.repo.save(userToCreate);

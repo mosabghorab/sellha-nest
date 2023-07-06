@@ -1,9 +1,11 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 import { Reason } from '../../reasons/entities/reason.entity';
@@ -21,6 +23,12 @@ export class Report {
 
   @Column()
   text: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   // relations.
   @ManyToOne(() => Product, (product) => product.reports, {

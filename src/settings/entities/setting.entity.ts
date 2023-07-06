@@ -2,27 +2,30 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Report } from '../../reports/entities/report.entity';
 
 @Entity()
-export class Reason {
+export class Setting {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   name: string;
 
+  @Column({ unique: true })
+  key: string;
+
+  @Column()
+  value: string;
+
+  @Column()
+  group: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  // relations.
-  @OneToMany(() => Report, (report) => report.reason, { cascade: true })
-  reports: Report[];
 }
