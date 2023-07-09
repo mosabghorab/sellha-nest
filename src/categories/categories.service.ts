@@ -24,12 +24,16 @@ export class CategoriesService {
   async create(userId: number, createCategoryDto: CreateCategoryDto, files) {
     const createCategoryUploadFilesDto =
       await this._prepareCreateCategoryUploadedFilesDtoFromFiles(files);
-    const user = await this.usersService.findOneById(userId);
+    const parent = await this.findOneById(createCategoryDto.parentId);
+    if (!parent) {
+      throw new NotFoundException('Parent category not found.');
+    }
     const category = await this.repo.create({
       image: createCategoryUploadFilesDto.image.name,
+      userId: userId,
       ...createCategoryDto,
     });
-    category.user = user;
+    category.parent = parent;
     return this.repo.save(category);
   }
 
@@ -39,7 +43,14 @@ export class CategoriesService {
       await this._prepareUpdateAdUploadFilesDtoFromFiles(files);
     const category = await this.findOneById(id);
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException('Category not found.');
+    }
+    if (updateCategoryDto.parentId) {
+      const parent = await this.findOneById(updateCategoryDto.parentId);
+      if (!parent) {
+        throw new NotFoundException('Parent category not found.');
+      }
+      category.parent = parent;
     }
     if (updateCategoryUploadFilesDto.image) {
       unlinkSync(Constants.categoriesImagesPath + category.image);
@@ -76,9 +87,9 @@ export class CategoriesService {
   }
 
   // prepare create category uploaded files dto from files.
-  private async _prepareCreateCategoryUploadedFilesDtoFromFiles(
+  private _prepareCreateCategoryUploadedFilesDtoFromFiles = async (
     files: any,
-  ): Promise<CreateCategoryUploadedFilesDto> {
+  ): Promise<CreateCategoryUploadedFilesDto> => {
     const createCategoryUploadFilesDto = new CreateCategoryUploadedFilesDto();
     createCategoryUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(createCategoryUploadFilesDto);
@@ -88,12 +99,12 @@ export class CategoriesService {
       createCategoryUploadFilesDto.image,
     );
     return createCategoryUploadFilesDto;
-  }
+  };
 
   // prepare update category upload files dto from files.
-  private async _prepareUpdateAdUploadFilesDtoFromFiles(
+  private _prepareUpdateAdUploadFilesDtoFromFiles = async (
     files: any,
-  ): Promise<UpdateCategoryUploadedFilesDto> {
+  ): Promise<UpdateCategoryUploadedFilesDto> => {
     const updateCategoryUploadFilesDto = new UpdateCategoryUploadedFilesDto();
     updateCategoryUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(updateCategoryUploadFilesDto);
@@ -104,5 +115,5 @@ export class CategoriesService {
         updateCategoryUploadFilesDto.image,
       );
     return updateCategoryUploadFilesDto;
-  }
+  };
 }

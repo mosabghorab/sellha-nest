@@ -48,7 +48,7 @@ export class Product {
   mainImage: string;
 
   @Column({ type: 'enum', enum: ProductType })
-  type: string;
+  type: ProductType;
 
   @Column()
   lat: number;

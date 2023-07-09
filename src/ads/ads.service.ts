@@ -67,9 +67,9 @@ export class AdsService {
   }
 
   // prepare create ad uploaded files dto from files.
-  private async _prepareCreateAdUploadedFilesDtoFromFiles(
+  private _prepareCreateAdUploadedFilesDtoFromFiles = async (
     files: any,
-  ): Promise<CreateAdUploadedFilesDto> {
+  ): Promise<CreateAdUploadedFilesDto> => {
     const createAdUploadFilesDto = new CreateAdUploadedFilesDto();
     createAdUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(createAdUploadFilesDto);
@@ -79,12 +79,12 @@ export class AdsService {
       createAdUploadFilesDto.image,
     );
     return createAdUploadFilesDto;
-  }
+  };
 
   // prepare update ad upload files dto from files.
-  private async _prepareUpdateAdUploadFilesDtoFromFiles(
+  private _prepareUpdateAdUploadFilesDtoFromFiles = async (
     files: any,
-  ): Promise<UpdateAdUploadedFilesDto> {
+  ): Promise<UpdateAdUploadedFilesDto> => {
     const updateAdUploadFilesDto = new UpdateAdUploadedFilesDto();
     updateAdUploadFilesDto.image = UploadImageDto.fromFile(files?.image);
     await validateDto(updateAdUploadFilesDto);
@@ -95,5 +95,5 @@ export class AdsService {
         updateAdUploadFilesDto.image,
       );
     return updateAdUploadFilesDto;
-  }
+  };
 }

@@ -16,12 +16,16 @@ import { unlinkSync } from 'fs';
 import { UsersRolesService } from '../users-roles/users-roles.service';
 import { FindOptionsRelations } from 'typeorm/browser';
 import { SignUpDto } from '../auth/dtos/sign-up.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { OnEvent } from '@nestjs/event-emitter';
+import { UserCreatedEvent } from './events/user-created.event';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly repo: Repository<User>,
     private readonly usersRolesService: UsersRolesService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // find by email.
@@ -75,8 +79,8 @@ export class UsersService {
     return createdUser;
   }
 
-  findAll() {
-    return this.repo.find();
+  findAll(relations?: FindOptionsRelations<User>) {
+    return this.repo.find({ relations });
   }
 
   async findOneById(id: number) {
@@ -126,6 +130,19 @@ export class UsersService {
       throw new NotFoundException('User not found.');
     }
     return this.repo.remove(user);
+  }
+
+  @OnEvent('user.created')
+  handleUserCreatedEvent(userCreatedEvent: UserCreatedEvent) {
+    this.sendWelcomingEmail(userCreatedEvent.name, userCreatedEvent.email);
+  }
+
+  sendWelcomingEmail(name: string, email: string) {
+    this.notificationsService.sendEmail(
+      email,
+      'Welcome to sellha app',
+      'we are welcoming you to our beautiful system ' + name,
+    );
   }
 
   private _getCols(): (keyof User)[] {

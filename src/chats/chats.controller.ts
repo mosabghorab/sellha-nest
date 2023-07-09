@@ -11,12 +11,13 @@ import {
 import { ChatsService } from './chats.service';
 import { CreateChatDto } from './dtos/create-chat.dto';
 import { UpdateChatDto } from './dtos/update-chat.dto';
-import { ApiResponse } from '../config/classes/api-response';
 import { CurrentUser } from '../users/custom-decorators/current-user-decorator';
 import { FindChatsDto } from './dtos/find-chats.dto';
 import { Strict } from '../config/metadata/strict.metadata';
 import { PermissionAction } from '../permissions/enums/permission-action-enum';
 import { PermissionGroup } from '../permissions/enums/permission-group-enum';
+import { Serialize } from '../config/interceptors/serialize.interceptor';
+import { ChatDto } from './dtos/chat.dto';
 
 @Controller('chats')
 export class ChatsController {
@@ -26,6 +27,7 @@ export class ChatsController {
     permissionAction: PermissionAction.CREATE,
     permissionGroup: PermissionGroup.CHATS,
   })
+  @Serialize(ChatDto, 'Create or getting chat successfully.')
   @Post()
   async createOrGet(@Body() createChatDto: CreateChatDto) {
     let chat = await this.chatsService.findOneBySellerIdAndBuyerId(
@@ -36,44 +38,31 @@ export class ChatsController {
     if (!chat) {
       chat = await this.chatsService.create(createChatDto);
     }
-    return new ApiResponse(
-      true,
-      'create or getting chat successfully',
-      200,
-      chat,
-    );
+    return chat;
   }
 
   @Strict({
     permissionAction: PermissionAction.VIEW,
     permissionGroup: PermissionGroup.CHATS,
   })
+  @Serialize(ChatDto, 'All chats.')
   @Get()
   async findAll(@CurrentUser() user: any, @Query() findChatsDto: FindChatsDto) {
-    return new ApiResponse(
-      true,
-      'getting all chats successfully',
-      200,
-      await this.chatsService.findAll(user.id, findChatsDto, {
-        buyer: true,
-        seller: true,
-        product: true,
-      }),
-    );
+    return this.chatsService.findAll(user.id, findChatsDto, {
+      buyer: true,
+      seller: true,
+      product: true,
+    });
   }
 
   @Strict({
     permissionAction: PermissionAction.UPDATE,
     permissionGroup: PermissionGroup.CHATS,
   })
+  @Serialize(ChatDto, 'Chat updated successfully.')
   @Patch(':id')
   async update(@Param('id') id: number, @Body() updateChatDto: UpdateChatDto) {
-    return new ApiResponse(
-      true,
-      'chat updated successfully',
-      200,
-      await this.chatsService.update(id, updateChatDto),
-    );
+    return this.chatsService.update(id, updateChatDto);
   }
 
   @Strict({
@@ -81,12 +70,8 @@ export class ChatsController {
     permissionGroup: PermissionGroup.CHATS,
   })
   @Delete(':id')
+  @Serialize(ChatDto, 'Chat deleted successfully.')
   async remove(@Param('id') id: number) {
-    return new ApiResponse(
-      true,
-      'chat deleted successfully',
-      200,
-      await this.chatsService.remove(id),
-    );
+    return this.chatsService.remove(id);
   }
 }

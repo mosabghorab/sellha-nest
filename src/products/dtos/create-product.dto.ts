@@ -30,7 +30,7 @@ export class CreateProductDto {
   price: number;
 
   @IsEnum(ProductType)
-  type: string;
+  type: ProductType;
 
   @IsLatitude()
   @Transform(({ value }) => parseFloat(value))

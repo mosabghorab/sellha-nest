@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiResponse } from '../config/classes/api-response';
 import { ReasonsService } from './reasons.service';
 import { CreateReasonDto } from './dtos/create-reason.dto';
 import { UpdateReasonDto } from './dtos/update-reason.dto';
@@ -15,6 +14,8 @@ import { Strict } from '../config/metadata/strict.metadata';
 import { PermissionAction } from '../permissions/enums/permission-action-enum';
 import { PermissionGroup } from '../permissions/enums/permission-group-enum';
 import { Public } from '../config/metadata/public.metadata';
+import { Serialize } from '../config/interceptors/serialize.interceptor';
+import { ReasonDto } from './dtos/reason.dto';
 
 @Controller('reasons')
 export class ReasonsController {
@@ -24,55 +25,39 @@ export class ReasonsController {
     permissionAction: PermissionAction.CREATE,
     permissionGroup: PermissionGroup.REASONS,
   })
+  @Serialize(ReasonDto, 'Reason created successfully.')
   @Post()
   async create(@Body() createReasonDto: CreateReasonDto) {
-    return new ApiResponse(
-      true,
-      'Reason created successfully',
-      200,
-      await this.reasonsService.create(createReasonDto),
-    );
+    return this.reasonsService.create(createReasonDto);
   }
 
   @Strict({
     permissionAction: PermissionAction.UPDATE,
     permissionGroup: PermissionGroup.REASONS,
   })
+  @Serialize(ReasonDto, 'Reason updated successfully.')
   @Patch(':id')
   async update(
     @Param('id') id: number,
     @Body() updateReasonDto: UpdateReasonDto,
   ) {
-    return new ApiResponse(
-      true,
-      'Reason updated successfully',
-      200,
-      await this.reasonsService.update(id, updateReasonDto),
-    );
+    return this.reasonsService.update(id, updateReasonDto);
   }
 
   @Public()
+  @Serialize(ReasonDto, 'All reasons.')
   @Get()
   async getAll() {
-    return new ApiResponse(
-      true,
-      'All reasons',
-      200,
-      await this.reasonsService.findAll(),
-    );
+    return this.reasonsService.findAll();
   }
 
   @Strict({
     permissionAction: PermissionAction.DELETE,
     permissionGroup: PermissionGroup.REASONS,
   })
+  @Serialize(ReasonDto, 'Reason deleted successfully.')
   @Delete(':id')
   async delete(@Param('id') id: number) {
-    return new ApiResponse(
-      true,
-      'Reason deleted successfully',
-      200,
-      await this.reasonsService.delete(id),
-    );
+    return this.reasonsService.delete(id);
   }
 }

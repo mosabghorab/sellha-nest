@@ -9,12 +9,13 @@ import {
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { ApiResponse } from '../config/classes/api-response';
 import { CurrentUser } from '../users/custom-decorators/current-user-decorator';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Strict } from '../config/metadata/strict.metadata';
 import { PermissionAction } from '../permissions/enums/permission-action-enum';
 import { PermissionGroup } from '../permissions/enums/permission-group-enum';
+import { Serialize } from '../config/interceptors/serialize.interceptor';
+import { OrderDto } from './dto/order.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -24,75 +25,55 @@ export class OrdersController {
     permissionAction: PermissionAction.CREATE,
     permissionGroup: PermissionGroup.ORDERS,
   })
+  @Serialize(OrderDto, 'Order created successfully.')
   @Post()
   async create(
     @CurrentUser() user: any,
     @Body() createOrderDto: CreateOrderDto,
   ) {
-    return new ApiResponse(
-      true,
-      'Order created successfully',
-      200,
-      await this.ordersService.create(user.id, createOrderDto),
-    );
+    return this.ordersService.create(user.id, createOrderDto);
   }
 
   @Strict({
     permissionAction: PermissionAction.VIEW,
     permissionGroup: PermissionGroup.ORDERS,
   })
+  @Serialize(OrderDto, 'All orders.')
   @Get()
   async findAll() {
-    return new ApiResponse(
-      true,
-      'All orders',
-      200,
-      await this.ordersService.findAll(),
-    );
+    return this.ordersService.findAll();
   }
 
   @Strict({
     permissionAction: PermissionAction.VIEW,
     permissionGroup: PermissionGroup.ORDERS,
   })
+  @Serialize(OrderDto, 'One order.')
   @Get(':id')
   async findOne(@Param('id') id: number) {
-    return new ApiResponse(
-      true,
-      'Show order',
-      200,
-      await this.ordersService.findOneById(id),
-    );
+    return this.ordersService.findOneById(id);
   }
 
   @Strict({
     permissionAction: PermissionAction.UPDATE,
     permissionGroup: PermissionGroup.ORDERS,
   })
+  @Serialize(OrderDto, 'Order updated successfully.')
   @Patch(':id')
   async update(
     @Param('id') id: number,
     @Body() updateOrderDto: UpdateOrderDto,
   ) {
-    return new ApiResponse(
-      true,
-      'Order updated successfully',
-      200,
-      await this.ordersService.update(id, updateOrderDto),
-    );
+    return this.ordersService.update(id, updateOrderDto);
   }
 
   @Strict({
     permissionAction: PermissionAction.DELETE,
     permissionGroup: PermissionGroup.ORDERS,
   })
+  @Serialize(OrderDto, 'Order deleted successfully.')
   @Delete(':id')
   async remove(@Param('id') id: number) {
-    return new ApiResponse(
-      true,
-      'Order deleted successfully',
-      200,
-      await this.ordersService.remove(id),
-    );
+    return this.ordersService.remove(id);
   }
 }

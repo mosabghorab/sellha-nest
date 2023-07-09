@@ -9,7 +9,6 @@ import {
   Query,
   UploadedFiles,
 } from '@nestjs/common';
-import { ApiResponse } from '../config/classes/api-response';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { CurrentUser } from 'src/users/custom-decorators/current-user-decorator';
@@ -19,6 +18,9 @@ import { Strict } from '../config/metadata/strict.metadata';
 import { PermissionAction } from '../permissions/enums/permission-action-enum';
 import { PermissionGroup } from '../permissions/enums/permission-group-enum';
 import { Public } from '../config/metadata/public.metadata';
+import { Serialize } from '../config/interceptors/serialize.interceptor';
+import { ProductDto } from './dtos/product.dto';
+import { ProductsWithPaginationDto } from './dtos/products-with-pagination.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -28,71 +30,51 @@ export class ProductsController {
     permissionAction: PermissionAction.CREATE,
     permissionGroup: PermissionGroup.PRODUCTS,
   })
+  @Serialize(ProductDto, 'Product created successfully.')
   @Post()
   async create(
     @CurrentUser() user: any,
     @Body() createProductDto: CreateProductDto,
     @UploadedFiles() files: any,
   ) {
-    return new ApiResponse(
-      true,
-      'Product created successfully',
-      200,
-      await this.productsService.create(user.id, createProductDto, files),
-    );
+    return this.productsService.create(user.id, createProductDto, files);
   }
 
   @Strict({
     permissionAction: PermissionAction.UPDATE,
     permissionGroup: PermissionGroup.PRODUCTS,
   })
+  @Serialize(ProductDto, 'Product updated successfully.')
   @Patch(':id')
   async update(
     @Param('id') id: number,
     @Body() updateProductDto: UpdateProductDto,
     @UploadedFiles() files: any,
   ) {
-    return new ApiResponse(
-      true,
-      'Product updated successfully',
-      200,
-      await this.productsService.update(id, updateProductDto, files),
-    );
+    return this.productsService.update(id, updateProductDto, files);
   }
 
   @Public()
+  @Serialize(ProductDto, 'One product.')
   @Get(':id')
-  async getOne(@Param('id') id: number) {
-    return new ApiResponse(
-      true,
-      'Show product',
-      200,
-      await this.productsService.findOneById(id),
-    );
+  async findOne(@Param('id') id: number) {
+    return this.productsService.findOneById(id);
   }
 
   @Public()
+  @Serialize(ProductsWithPaginationDto, 'All products.')
   @Get()
-  async getAll(@Query() filterProductsDto: FilterProductsDto) {
-    return new ApiResponse(
-      true,
-      'All products',
-      200,
-      await this.productsService.findAll(filterProductsDto),
-    );
+  async findAll(@Query() filterProductsDto: FilterProductsDto) {
+    return this.productsService.findAll(filterProductsDto);
   }
 
   @Strict({
     permissionAction: PermissionAction.DELETE,
     permissionGroup: PermissionGroup.PRODUCTS,
   })
+  @Serialize(ProductDto, 'Product deleted successfully.')
   @Delete(':id')
   async delete(@Param('id') id: number) {
-    return new ApiResponse(
-      true,
-      'Product deleted successfully',
-      200,
-      await this.productsService.delete(id),
-    );
+    return this.productsService.delete(id);
   }
 }

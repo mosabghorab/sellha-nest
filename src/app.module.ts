@@ -39,6 +39,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { SettingsModule } from './settings/settings.module';
 import { Setting } from './settings/entities/setting.entity';
+import { NotificationsModule } from './notifications/notifications.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -71,6 +73,7 @@ import { Setting } from './settings/entities/setting.entity';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),
+    EventEmitterModule.forRoot(),
     AuthModule,
     UsersModule,
     CategoriesModule,
@@ -89,6 +92,7 @@ import { Setting } from './settings/entities/setting.entity';
     RolesPermissionsModule,
     UsersRolesModule,
     SettingsModule,
+    NotificationsModule,
   ],
   providers: [
     {

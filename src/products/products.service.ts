@@ -200,9 +200,9 @@ export class ProductsService {
   }
 
   // prepare create product upload files dto from files.
-  private async _prepareCreateProductUploadFilesDtoFromFiles(
+  private _prepareCreateProductUploadFilesDtoFromFiles = async (
     files: any,
-  ): Promise<CreateProductUploadFilesDto> {
+  ): Promise<CreateProductUploadFilesDto> => {
     const imagesUploadImageDto = [];
     for (const image of files?.images || []) {
       imagesUploadImageDto.push(UploadImageDto.fromFile(image));
@@ -222,14 +222,14 @@ export class ProductsService {
       await saveFile(Constants.productsImagesPath, image.name, image);
     }
     return createProductUploadFilesDto;
-  }
+  };
 
   // prepare update product upload files dto from files.
-  private async _prepareUpdateProductUploadFilesDtoFromFiles(
+  private _prepareUpdateProductUploadFilesDtoFromFiles = async (
     files: any,
-  ): Promise<UpdateProductUploadFilesDto> {
+  ): Promise<UpdateProductUploadFilesDto> => {
     const imagesUploadImageDto = [];
-    for (const image of files?.images) {
+    for (const image of files?.images || []) {
       imagesUploadImageDto.push(UploadImageDto.fromFile(image));
     }
     const updateProductUploadFilesDto = new UpdateProductUploadFilesDto();
@@ -248,5 +248,5 @@ export class ProductsService {
       await saveFile(Constants.productsImagesPath, image.name, image);
     }
     return updateProductUploadFilesDto;
-  }
+  };
 }
