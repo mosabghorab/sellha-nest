@@ -41,34 +41,44 @@ import { SettingsModule } from './settings/settings.module';
 import { Setting } from './settings/entities/setting.entity';
 import { NotificationsModule } from './notifications/notifications.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      database: 'sellha',
-      username: 'root',
-      password: '',
-      entities: [
-        User,
-        Category,
-        Product,
-        Favorite,
-        Reason,
-        Report,
-        Order,
-        ProductImage,
-        Chat,
-        Message,
-        Comment,
-        Ad,
-        Role,
-        Permission,
-        RolesPermissions,
-        UsersRoles,
-        Setting,
-      ],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env.' + (process.env.NODE_ENV || 'development'),
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: 'mysql',
+          database: configService.get<string>('DATABASE_NAME'),
+          username: configService.get<string>('DATABASE_USERNAME'),
+          password: configService.get<string>('DATABASE_PASSWORD'),
+          entities: [
+            User,
+            Category,
+            Product,
+            Favorite,
+            Reason,
+            Report,
+            Order,
+            ProductImage,
+            Chat,
+            Message,
+            Comment,
+            Ad,
+            Role,
+            Permission,
+            RolesPermissions,
+            UsersRoles,
+            Setting,
+          ],
+          synchronize: true,
+        };
+      },
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
