@@ -41,6 +41,16 @@ export class ProductsController {
   }
 
   @Strict({
+    permissionAction: PermissionAction.CREATE,
+    permissionGroup: PermissionGroup.PRODUCTS,
+  })
+  @Serialize(ProductDto, 'Products created successfully.')
+  @Post('fake')
+  async generateFake(@CurrentUser() user: any, @Query('count') count: number) {
+    return this.productsService.generateFake(user.id, count);
+  }
+
+  @Strict({
     permissionAction: PermissionAction.UPDATE,
     permissionGroup: PermissionGroup.PRODUCTS,
   })

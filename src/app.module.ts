@@ -35,19 +35,28 @@ import { RolesPermissionsModule } from './roles-permissions/roles-permissions.mo
 import { RolesPermissions } from './roles-permissions/entities/roles-permissions.entity';
 import { UsersRolesModule } from './users-roles/users-roles.module';
 import { UsersRoles } from './users-roles/entities/users-roles.entity';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { SettingsModule } from './settings/settings.module';
 import { Setting } from './settings/entities/setting.entity';
 import { NotificationsModule } from './notifications/notifications.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env.' + (process.env.NODE_ENV || 'development'),
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 10000, // time to live in mille seconds.
+      // * for redis only *.
+      // store: redisStore,
+      // host: 'localhost',
+      // port: 6379,
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -108,6 +117,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
     },
   ],
 })

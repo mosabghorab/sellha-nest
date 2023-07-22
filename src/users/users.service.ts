@@ -80,6 +80,7 @@ export class UsersService {
   }
 
   findAll(relations?: FindOptionsRelations<User>) {
+    console.log('findAll method,');
     return this.repo.find({ relations });
   }
 

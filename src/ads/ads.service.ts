@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  StreamableFile,
 } from '@nestjs/common';
 import { CreateAdDto } from './dtos/create-ad.dto';
 import { UpdateAdDto } from './dtos/update-ad.dto';
@@ -13,7 +14,7 @@ import { Constants } from 'src/config/constants';
 import { UploadImageDto } from 'src/config/dtos/upload-image-dto';
 import { saveFile, validateDto } from 'src/config/helpers';
 import { UpdateAdUploadedFilesDto } from './dtos/update-ad-uploaded-files.dto';
-import { unlinkSync } from 'fs';
+import { createReadStream, unlinkSync } from 'fs';
 
 @Injectable()
 export class AdsService {
@@ -41,13 +42,26 @@ export class AdsService {
     return this.repo.findOne({ where: { id }, relations: relations });
   }
 
+  // find image by id.
+  async findImageById(
+    id: number,
+  ): Promise<{ fileExt: string; streamableFile: StreamableFile }> {
+    const ad = await this.findOneById(id);
+    if (!ad) {
+      throw new NotFoundException('Ad not found');
+    }
+    const file = createReadStream(Constants.adsImagesPath + ad.image);
+    const fileExt = ad.image.split('.')[1];
+    return { fileExt, streamableFile: new StreamableFile(file) };
+  }
+
   // update.
   async update(id: number, updateAdDto: UpdateAdDto, files: any): Promise<Ad> {
     const updateAdUploadFilesDto =
       await this._prepareUpdateAdUploadFilesDtoFromFiles(files);
     const ad = await this.findOneById(id);
     if (!ad) {
-      throw new NotFoundException('Ad not found');
+      throw new NotFoundException('Ad not found.');
     }
     if (updateAdUploadFilesDto.image) {
       unlinkSync(Constants.adsImagesPath + ad.image);

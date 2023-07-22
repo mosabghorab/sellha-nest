@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dtos/create-category.dto';
 import { UpdateCategoryDto } from './dtos/update-category.dto';
 import { FindOptionsRelations } from 'typeorm/find-options/FindOptionsRelations';
@@ -66,6 +66,25 @@ export class CategoriesService {
       where: { id },
       relations: relations,
     });
+  }
+
+  // find one random.
+  async findOneRandom(isSubCategory = false): Promise<Category> {
+    const count = await this.repo.count({
+      where: {
+        parentId: isSubCategory ? Not(IsNull()) : IsNull(),
+      },
+    });
+    const randomIndex = Math.floor(Math.random() * count);
+    return (
+      await this.repo.find({
+        where: {
+          parentId: isSubCategory ? Not(IsNull()) : IsNull(),
+        },
+        skip: randomIndex,
+        take: 1,
+      })
+    )[0];
   }
 
   // find all.

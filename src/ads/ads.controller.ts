@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Res,
   UploadedFiles,
 } from '@nestjs/common';
 import { AdsService } from './ads.service';
@@ -44,6 +45,16 @@ export class AdsController {
   @Get(':id')
   async findOne(@Param('id') id: number) {
     return this.adsService.findOneById(id);
+  }
+
+  @Public()
+  @Get(':id/image')
+  async findImage(@Res({ passthrough: true }) res, @Param('id') id: number) {
+    const { fileExt, streamableFile } = await this.adsService.findImageById(id);
+    res.set({
+      'Content-Disposition': `attachment; filename="ad-image.${fileExt}"`,
+    });
+    return streamableFile;
   }
 
   @Strict({

@@ -52,6 +52,7 @@ export class UsersController {
   @Serialize(UserDto, 'All users.')
   @Get()
   async findAll() {
+    console.log('hello there,');
     return this.usersService.findAll();
   }
 

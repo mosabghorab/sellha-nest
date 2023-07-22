@@ -21,6 +21,8 @@ import { UpdateProductUploadFilesDto } from './dtos/update-product-upload-files.
 import { UploadImageDto } from '../config/dtos/upload-image-dto';
 import { saveFile, validateDto } from '../config/helpers';
 import { Constants } from '../config/constants';
+import { faker } from '@faker-js/faker';
+import { ProductType } from '../config/enums/product-type.enum';
 
 @Injectable()
 export class ProductsService {
@@ -84,9 +86,12 @@ export class ProductsService {
       });
     }
     if (filterProductsDto.name) {
-      query.andWhere(`JSON_EXTRACT(product.name, '$.${'ar'}') LIKE :name`, {
-        name: `%${filterProductsDto.name}%`,
-      });
+      query.andWhere(
+        `JSON_EXTRACT(product.name, '$.ar') LIKE :name OR JSON_EXTRACT(product.name, '$.en') LIKE :name`,
+        {
+          name: `%${filterProductsDto.name}%`,
+        },
+      );
     }
     if (filterProductsDto.priceFrom) {
       query.andWhere('product.price >= :priceFrom', {
@@ -182,21 +187,31 @@ export class ProductsService {
   }
 
   // faker for products.
-  async generateAndSaveFakeProducts(count: number): Promise<void> {
-    // const fakeData = Array.from({ length: count }).map(() => ({
-    //   name: faker.lorem.word(),
-    //   userId: 3,
-    //   description: faker.lorem.sentence(),
-    //   price: faker.number.float({ min: 10, max: 10000 }),
-    //   viewCount: faker.number.int({ min: 0, max: 10000 }),
-    //   mainImage: faker.image.avatar(),
-    //   type: faker.helpers.arrayElement(Object.values(ProductType)),
-    //   lat: faker.location.latitude(),
-    //   lng: faker.location.longitude(),
-    //   discount: faker.number.float({ min: 0, max: 50 }),
-    //   isBestOffers: faker.datatype.boolean(),
-    // }));
-    // await this.repo.save(fakeData);
+  async generateFake(userId: number, count: number): Promise<Product[]> {
+    const categoryId = (await this.categoriesService.findOneRandom()).id;
+    const subCategoryId = (await this.categoriesService.findOneRandom(true)).id;
+    const fakeData = Array.from({ length: count }).map(() => ({
+      name: JSON.stringify({
+        en: faker.commerce.product(),
+        ar: faker.commerce.product(),
+      }),
+      userId: userId,
+      description: JSON.stringify({
+        en: faker.lorem.paragraph(10),
+        ar: faker.lorem.paragraph(10),
+      }),
+      price: faker.number.float({ min: 10, max: 10000 }),
+      viewCount: faker.number.int({ min: 0, max: 10000 }),
+      mainImage: faker.image.avatar(),
+      type: faker.helpers.arrayElement(Object.values(ProductType)),
+      lat: faker.location.latitude(),
+      lng: faker.location.longitude(),
+      discount: faker.number.float({ min: 0, max: 50 }),
+      isBestOffers: faker.datatype.boolean(),
+      categoryId: categoryId,
+      subCategoryId: subCategoryId,
+    }));
+    return await this.repo.save(fakeData);
   }
 
   // prepare create product upload files dto from files.
