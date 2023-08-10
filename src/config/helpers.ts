@@ -5,6 +5,7 @@ import * as fs from 'fs-extra';
 import { PermissionAction } from '../permissions/enums/permission-action-enum';
 import { PermissionGroup } from '../permissions/enums/permission-group-enum';
 import { UsersRoles } from '../users-roles/entities/users-roles.entity';
+import { UploadImageDto } from './dtos/upload-image-dto';
 
 export const extractTokenFromHeader = (
   request: Request,
@@ -46,7 +47,7 @@ export const generateUniqueFileName = (originalName: string): string => {
 export const saveFile = async (
   filepath: string,
   filename: string,
-  file: any,
+  file: UploadImageDto,
 ): Promise<boolean> => {
   await fs.ensureDir(filepath);
   await file.mv(filepath + filename);
@@ -58,7 +59,6 @@ export const can = (
   group: PermissionGroup,
   usersRoles: UsersRoles[],
 ) => {
-  return true;
   return usersRoles.some((e) =>
     e.role.rolesPermissions.some(
       (p) => p.permission.action === action && p.permission.group === group,

@@ -23,7 +23,6 @@ class SerializeInterceptor implements NestInterceptor {
     next: CallHandler<any>,
   ): Observable<any> | Promise<Observable<any>> {
     // run code before connecting to route handler.
-    console.log('before connecting to route handler');
 
     return next.handle().pipe(
       map((data: any) => {
