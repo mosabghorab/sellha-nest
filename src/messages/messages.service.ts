@@ -12,10 +12,10 @@ import { saveFile, validateDto } from '../config/helpers';
 import { Constants } from '../config/constants';
 import { MessageType } from './enums/message-type.enum';
 import { FindOptionsRelations } from 'typeorm/find-options/FindOptionsRelations';
-import { FindMessagesDto } from './dtos/find-messages.dto';
 import { Chat } from '../chats/entities/chat.entity';
 import { User } from '../users/entities/user.entity';
 import { Product } from '../products/entities/product.entity';
+import { FindMessagesDto } from './dtos/find-messages.dto';
 
 @Injectable()
 export class MessagesService {
